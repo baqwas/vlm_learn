@@ -2,8 +2,7 @@
 # -+*- coding: utf-8 -*-
 import json
 import os
-import mysql.connector
-from mysql.connector import errorcode
+import mariadb
 
 
 def insert_log_data_into_mariadb(log_file_path):
@@ -12,16 +11,16 @@ def insert_log_data_into_mariadb(log_file_path):
     """
     # 1. MariaDB Connection Details
     db_config = {
-        'host': 'raspbari5.parkcircus.org',
-        'user': 'iot_admi',
-        'password': 'Apna2Chabee!',
-        'database': 'ha'
+        'host': '',
+        'user': '',
+        'password': '',
+        'database': ''
     }
 
     try:
         # 2. Establish database connection
         print("Connecting to the MariaDB database...")
-        conn = mysql.connector.connect(**db_config)
+        conn = mariadb.connect(**db_config)
         cursor = conn.cursor()
         print("Connection successful!")
 
@@ -75,10 +74,10 @@ def insert_log_data_into_mariadb(log_file_path):
         conn.commit()
         print(f"\nSuccessfully inserted {records_inserted} records into the database.")
 
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+    except mariadb.Error as err:
+        if err.errno == mariadb.ER_ACCESS_DENIED_ERROR:
             print("Something is wrong with your user name or password.")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        elif err.errno == mariadb.ER_BAD_DB_ERROR:
             print("Database does not exist.")
         else:
             print(f"Database error: {err}")
@@ -98,7 +97,7 @@ def insert_log_data_into_mariadb(log_file_path):
 if __name__ == "__main__":
     # Define the path to your log file
     log_file_name = ("../conversation/batch_performance_log")
-    script_dir = os.path.dirname(__file__))
+    script_dir = os.path.dirname(__file__)
     log_file_path = os.path.join(script_dir, log_file_name)
 
     insert_log_data_into_mariadb(log_file_path)
