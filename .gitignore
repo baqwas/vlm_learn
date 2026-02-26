@@ -62,3 +62,4 @@ qwen_v2d5/conversation/qwen-local-processor/
 # configuration files
 config.toml
 .toml/
+.ini/
