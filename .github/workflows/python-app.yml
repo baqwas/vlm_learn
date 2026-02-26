@@ -72,3 +72,9 @@ jobs:
     - name: Run Tests with Pytest
       run: |
         python -m pytest
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: coverage.xml

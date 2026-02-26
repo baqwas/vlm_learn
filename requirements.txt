@@ -1,8 +1,8 @@
 # --- Core ML Frameworks ---
 # Use 'transformers[torch]' to ensure both the model logic and PyTorch are installed
-transformers>=4.51.0
-torch>=2.4.0
-accelerate>=1.1.0
+transformers>=4.51.0 # Security patch for ReDoS vulnerabilities
+torch>=2.6.0        # Improved memory management for sparse attention
+accelerate>=1.1.0   # Required for device_map="auto" logic in your test
 
 # --- Qwen Specific Requirements ---
 einops         # Required for some Qwen attention mechanisms
