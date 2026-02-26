@@ -156,6 +156,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-json-logger==4.0.0
 python-multipart==0.0.20
+pytest
 pytz==2025.2
 PyYAML==6.0.2
 pyzmq==27.1.0

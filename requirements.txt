@@ -1,0 +1,19 @@
+# --- Core ML Frameworks ---
+# Use 'transformers[torch]' to ensure both the model logic and PyTorch are installed
+transformers>=4.51.0
+torch>=2.4.0
+accelerate>=1.1.0
+
+# --- Qwen Specific Requirements ---
+einops         # Required for some Qwen attention mechanisms
+tiktoken       # Required for the Qwen tokenizer
+sentencepiece  # Alternative tokenizer backend
+safetensors    # For safe and fast model loading
+
+# --- Optional but Recommended ---
+huggingface_hub # For downloading models via CLI or scripts
+# flash-attn     # Optional: Greatly speeds up local GPU inference (skip for CI)
+
+# --- Testing & CI ---
+pytest         # Fixes your 'command not found' error
+pytest-cov     # Optional: For test coverage reports
