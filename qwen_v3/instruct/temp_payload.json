@@ -1,0 +1,12 @@
+{
+  "model": "Qwen/Qwen3-VL-2B-Instruct",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "Hello, is this API working?"}
+      ]
+    }
+  ],
+  "max_tokens": 100
+}

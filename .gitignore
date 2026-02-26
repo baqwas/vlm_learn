@@ -1,0 +1,64 @@
+# =============================================================================
+# 📁 [IDE & SYSTEM]
+# =============================================================================
+.idea/                  # PyCharm metadata
+.vscode/                # VS Code metadata
+*.swp                   # Vim swap files
+.DS_Store               # macOS system files
+vntest/                 # Temporary test directories
+
+# =============================================================================
+# 🐍 [PYTHON & ENVIRONMENTS]
+# =============================================================================
+__pycache__/            # Compiled Python bytecode
+*.py[cod]               # Python compiled files
+.venv/                  # Virtual environment
+env/
+build/
+dist/
+*.egg-info/
+
+# =============================================================================
+# 🤖 [AI & MACHINE LEARNING ASSETS]
+# =============================================================================
+# Logic: Never commit weights or raw data to source control.
+models/                 # Local directory for Qwen-VL weights
+checkpoints/            # Training/Fine-tuning snapshots
+*.pth                   # PyTorch weights
+*.bin                   # Model binaries
+*.safetensors           # Modern weight format
+*.onnx                  # Exported model graphs
+
+# =============================================================================
+# 🖼️ [DATASETS & OUTPUTS]
+# =============================================================================
+data/                   # Training/Validation image sets
+datasets/
+temp_results/           # Model inference previews
+outputs/                # Saved logs, plots, or predictions
+*.log                   # Application logs
+
+# Images and Fonts
+*.jpg
+*.JPG
+*.png
+*.ttf
+
+# Videos
+*.avi
+*.mov
+*.mp4
+
+*.bin
+*.pth
+*.safetensors
+
+# Heavy AI folders
+data/
+images/
+videos/
+qwen_v2d5/conversation/qwen-local-processor/
+
+# configuration files
+config.toml
+.toml/

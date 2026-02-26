@@ -1,0 +1,33 @@
+WBS,Task Name,Level,Type,Description,Gate/Milestone,Progress,Status
+1,Phase 1: Preparation & Ground Truth,1,Phase,Establish the Golden Dataset and labeling standards.,,25,In Progress
+1.1,Milestone 1.1: Dataset Curation,2,Milestone,Collection and standardization of images.,Yes,100,Completed
+1.1.1,Task 1.1.1: Collect 50 images across 4 categories,3,Task,Categories: Subitizing; Occlusion; Pattern; Attribute,,100,Completed
+1.1.2,Task 1.1.2: Standardize image resolutions to 1024x1024,3,Task,Ensure consistent scaling for tiling tests.,,100,Completed
+1.2,Milestone 1.2: Ground Truth (GT) Labeling,2,Milestone,Generation of coordinate-based ground truth.,Yes,0,Not Started
+1.2.1,Task 1.2.1: Generate JSON GT files with bboxes,3,Task,"Log [ymin, xmin, ymax, xmax] for all 50 images.",,0,Not Started
+1.2.2,Task 1.2.2: Conduct 'Human Baseline' count,3,Task,Establish upper bound accuracy via manual audit.,,0,Not Started
+G1,GATE 1: Data Integrity Sign-off,1,Gate,Peer verification of ground truth labels.,Yes,0,Not Started
+2,Phase 2: Core Model Benchmarking,1,Phase,Execution of raw single-pass inference.,,0,Not Started
+2.1,Milestone 2.1: Qwen2.5-VL Execution,2,Milestone,Baseline run for the high-parameter model.,Yes,0,Not Started
+2.1.1,Task 2.1.1: Batch run 50 images through Qwen,3,Task,Log raw JSON responses from the model.,,0,Not Started
+2.1.2,Task 2.1.2: Calculate individual image IoU/MAE,3,Task,Post-process results against GT.,,0,Not Started
+2.2,Milestone 2.2: Moondream2 Baseline Execution,2,Milestone,Baseline run for the sVLM model.,Yes,0,Not Started
+2.2.1,Task 2.2.1: Batch run 50 images through Moondream,3,Task,Log raw JSON responses from the model.,,0,Not Started
+2.2.2,Task 2.2.2: Generate Moondream Confusion Matrix,3,Task,Identify primary failure modes (misses vs hallucinations).,,0,Not Started
+G2,GATE 2: Baseline Completion,1,Gate,Verify baseline scores before advanced testing.,Yes,0,Not Started
+3,Phase 3: Advanced Experimentation (Tiling & NMS),1,Phase,Testing the 'Resolution Curse' hypothesis.,,0,Not Started
+3.1,Milestone 3.1: Tiled Inference Workflow,2,Milestone,Implementation of 3x3 grid inference.,Yes,0,Not Started
+3.1.1,Task 3.1.1: Implement Python Tiling script,3,Task,Script for Global + 3x3 local tiles.,,0,Not Started
+3.1.2,Task 3.1.2: Run Moondream on 500+ resulting tiles,3,Task,Sequential processing of all tile patches.,,0,Not Started
+3.2,Milestone 3.2: Spatial Aggregation & NMS,2,Milestone,Merging tile detections into global counts.,Yes,0,Not Started
+3.2.1,Task 3.2.1: Apply global coordinate projection,3,Task,Project tile-relative boxes to 1024px canvas.,,0,Not Started
+3.2.2,Task 3.2.2: Execute NMS merging logic,3,Task,Remove duplicates in overlapping tile regions.,,0,Not Started
+G3,GATE 3: Experimental Validation,1,Gate,Confirm NMS logic successfully merges detections.,Yes,0,Not Started
+4,Phase 4: Statistical Synthesis & Reporting,1,Phase,Final data analysis and stakeholder reporting.,,0,Not Started
+4.1,Milestone 4.1: Threshold & Slope Analysis,2,Milestone,Statistical modeling of counting behavior.,Yes,0,Not Started
+4.1.1,Task 4.1.1: Run Bilinear Fit script for X0,3,Task,Identify the Subitizing Threshold per model.,,0,Not Started
+4.1.2,Task 4.1.2: Compare Alpha1 and Alpha2 slopes,3,Task,Analyze stability and decay rates.,,0,Not Started
+4.2,Milestone 4.2: Final Documentation,2,Milestone,Creation of the final project brief.,Yes,0,Not Started
+4.2.1,Task 4.2.1: Compile Exec Summary & Tech Appendix,3,Task,"Finalize all charts, logs, and tables.",,0,Not Started
+4.2.2,Task 4.2.2: Final Bibliography & Presentation,3,Task,Format citations and prepare for peer review.,,0,Not Started
+G4,GATE 4: Final Peer Review,1,Gate,Submit final report for sign-off.,Yes,0,Not Started

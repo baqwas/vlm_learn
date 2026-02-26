@@ -1,0 +1,24 @@
+WBS,Task Name,Level,Start,End,Status
+1.1,Dataset Curation,2,2026-02-12,2026-02-14,Completed
+1.2,Ground Truth Labeling,2,2026-02-14,2026-02-18,Completed
+2.1,Qwen2.5-VL Execution,2,2026-02-18,2026-02-21,Completed
+2.2,Moondream2 Baseline,2,2026-02-21,2026-02-24,In Progress
+3.1,Tiled Inference Workflow,2,2026-02-24,2026-03-01,Not Started
+3.2,Aggregation & NMS,2,2026-03-01,2026-03-05,Not Started
+4.1,Threshold Analysis,2,2026-03-05,2026-03-08,Not Started
+4.2,Final Documentation,2,2026-03-08,2026-03-12,Not Started
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
