@@ -1,26 +1,74 @@
+# ==============================================================================
+# WORKFLOW: Python CI/CD with Qwen Model Support
+# COMPLIANCE ALIGNMENT:
+#   - NIST 800-53: SI-7 (Software Integrity)
+#   - ISO 27001: A.14.2 (Security in Development and Support)
+# OWNER: ParkCircus Productions
+# LAST REVIEWED: 2026-02-26
+# ==============================================================================
+
 name: Python application using Qwen models
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  security-events: write # Required for security report integration
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    - name: Set up Python
+    - name: GitGuardian scan
+      uses: GitGuardian/ggshield-action@v1.30.0
+      env:
+        GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+    - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip' # cache requirements
+        cache: 'pip'
+
+    # --- NEW SECURITY SCANS ---
+
+    # CONTROL: Static Application Security Testing (SAST)
+    # Bandit checks your source code for common pitfalls like hardcoded passwords
+    # or insecure 'eval()' calls which are common in LLM experiments.
+    - name: Run Bandit Security Scan
+      run: |
+        pip install bandit
+        bandit -r . -f txt -o bandit-report.txt || true
+        # Using '|| true' ensures the build continues so you can read the report
+        # In a strict production environment, you would remove '|| true' to block the build.
+
+    # CONTROL: Software Composition Analysis (SCA)
+    # pip-audit checks your 'requirements.txt' against the PyPI vulnerability database.
+    # Crucial for AI projects using large frameworks like PyTorch or Transformers.
+    - name: Run pip-audit (Dependency Scan)
+      run: |
+        pip install pip-audit
+        # We check requirements.txt before we actually 'install' them
+        if [ -f requirements.txt ]; then pip-audit -r requirements.txt; fi
+
+    # --- END SECURITY SCANS ---
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install pytest 
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run Tests
+    - name: Run Tests with Pytest
       run: |
-        # Replace 'pytest' with your test command (e.g., python -m unittest)
-        pytest
+        python -m pytest

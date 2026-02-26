@@ -17,6 +17,7 @@ env/
 build/
 dist/
 *.egg-info/
+.env                    # Never commit
 
 # =============================================================================
 # 🤖 [AI & MACHINE LEARNING ASSETS]
@@ -64,3 +65,8 @@ config.toml
 db_config.ini
 .toml/
 .ini/
+
+# audit scan results
+bandit-report.txt
+bandit-report.json
+pip-audit-report.txt

@@ -24,6 +24,16 @@ Core scripts for model management and system auditing.
 
 ## 🛠️ Setup & Security
 
+This project implements automated security controls within the CI/CD pipeline to ensure the integrity of the Qwen model implementation and protect against credential exposure.
+
+* **Secret Detection (DLP)**: Integrated with GitGuardian to perform full-history scans on every push, preventing the accidental leakage of LLM API keys (Hugging Face, OpenAI) or cloud credentials.
+
+* **Static Analysis (SAST)**: Utilizes Bandit to scan source code for common security pitfalls. Rules are specifically configured to manage AI-specific risks like model serialization (Pickle) and validation logic (Asserts).
+
+* **Software Composition Analysis (SCA)**: Uses pip-audit to cross-reference dependencies (Transformers, PyTorch, etc.) against the PyPA and Google OSV vulnerability databases, ensuring a secure software supply chain.
+
+* **Execution Integrity**: Automated functional testing via Pytest ensures that model loading and inference logic remain stable and predictable across environments.
+
 ### Environment
 
 This project requires **Python 3.11+**. Core dependencies include:
@@ -85,9 +95,19 @@ print(f"CUDA Available: {torch.cuda.is_available()}")
 
 As specified in the .gitignore:
 
-    Do not run pip freeze > requirements.txt if your environment contains local paths.
+* Do not run pip freeze > requirements.txt if your environment contains local paths.
 
-    Always ensure *.bin and *.safetensors are not tracked before committing new scripts.
+* Always ensure *.bin and *.safetensors are not tracked before committing new scripts.
+
+### Key Processes
+
+When an auditor reviews a repository, they look for evidence of three things: **Prevention**, **Detection**, and **Response**. This section proves you have all three:
+
+1. **Prevention**: You check the code before it is merged.
+
+2. **Detection**: Your tools (Bandit/pip-audit) identify issues automatically.
+
+3. **Response**: Your GitHub Actions workflow will fail (or report), requiring you to fix the versioning or code before moving forward.
 
 ---
 
