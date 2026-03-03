@@ -2,6 +2,8 @@
 
 This repository serves as a centralized laboratory for **Vision-Language Model (VLM)** experimentation, focusing on **Qwen-VL** and **CLIP** architectures. It also integrates a high-fidelity **NOAA Satellite Infrastructure** for real-time geophysical data processing.
 
+VLM Status: AUTO
+
 ## 📂 Project Structure
 
 ### 👁️ Vision Tasks

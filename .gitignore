@@ -6,6 +6,8 @@
 *.swp                   # Vim swap files
 .DS_Store               # macOS system files
 vntest/                 # Temporary test directories
+Thumbs.db               # Windows thumbnail cache
+.nfs* # NFS recovery files (Important for debian mount)
 
 # =============================================================================
 # 🐍 [PYTHON & ENVIRONMENTS]
@@ -13,11 +15,27 @@ vntest/                 # Temporary test directories
 __pycache__/            # Compiled Python bytecode
 *.py[cod]               # Python compiled files
 .venv/                  # Virtual environment
-env/
-build/
-dist/
-*.egg-info/
-.env                    # Never commit
+venv/
+env/                    #
+ENV/
+build/                  #
+dist/                   #
+*.egg-info/             #
+.ipynb_checkpoints/     # Jupyter Notebook checkpoints
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =============================================================================
+# 🔐 [SECRETS & CONFIGURATION]
+# =============================================================================
+.env                    # Never commit environment variables
+config.toml             #
+db_config.ini           #
+*.toml                  # Broad ignore for config
+*.ini                   # Broad ignore for config
+*.pem                   # Private keys/Certificates
+*.key                   # Private keys
+auth.json               # Credential files
 
 # =============================================================================
 # 🤖 [AI & MACHINE LEARNING ASSETS]
@@ -29,44 +47,38 @@ checkpoints/            # Training/Fine-tuning snapshots
 *.bin                   # Model binaries
 *.safetensors           # Modern weight format
 *.onnx                  # Exported model graphs
+*.pkl                   # Pickle files (often used for weights/data)
 
 # =============================================================================
 # 🖼️ [DATASETS & OUTPUTS]
 # =============================================================================
 data/                   # Training/Validation image sets
-datasets/
+datasets/               #
+images/                 #
+videos/                 #
 temp_results/           # Model inference previews
 outputs/                # Saved logs, plots, or predictions
 *.log                   # Application logs
+qwen_v2d5/conversation/qwen-local-processor/
 
-# Images and Fonts
+# Media Formats
 *.jpg
 *.JPG
 *.png
 *.ttf
-
-# Videos
 *.avi
 *.mov
 *.mp4
 
-*.bin
-*.pth
-*.safetensors
+# =============================================================================
+# 🔍 [AUDIT & SECURITY]
+# =============================================================================
+bandit-report.txt       #
+bandit-report.json      #
+pip-audit-report.txt    #
+.cache_ggshield         # Added by ggshield
 
-# Heavy AI folders
-data/
-images/
-videos/
-qwen_v2d5/conversation/qwen-local-processor/
-
-# configuration files
-config.toml
-db_config.ini
-.toml/
-.ini/
-
-# audit scan results
-bandit-report.txt
-bandit-report.json
-pip-audit-report.txt
+# Added by ggshield
+.cache_ggshield
+__pycache__/
+*.pyc
