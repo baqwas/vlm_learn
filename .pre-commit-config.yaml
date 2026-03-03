@@ -19,4 +19,4 @@ repos:
         name: VLM Integrity Check
         entry: python3 utilities/check_vlm_health.py
         language: system
-        stages: [commit]
+        stages: [pre-commit]
