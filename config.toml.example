@@ -1,0 +1,30 @@
+# ================================================================================
+# PROJECT: VLM Learn / ParkCircus Productions 🚀
+# TEMPLATE: config.toml.example
+# INSTRUCTIONS: Copy this file to 'config.toml' and update the values below.
+# ================================================================================
+
+[hello_world]
+# The Hugging Face Model ID or local path to the VLM
+# Options to evaluate:
+# - "Qwen/Qwen3-VL-2B-Instruct"
+# - "Qwen/Qwen3-VL-4B-Instruct"
+# - "Qwen/Qwen3-VL-8B-Instruct"
+model_id       = "Qwen/Qwen3-VL-2B-Instruct"
+
+# Full path to a single local image for the 'single' run mode
+test_image     = "/path/to/your/images/test_asset.jpg"
+
+# Full path to a directory containing images for 'multiple' run mode
+test_dir       = "/path/to/your/images/exercises"
+
+# The prompt used to evaluate the model's visual reasoning and grounding
+default_prompt = "Describe this image in detail with grounding."
+
+# Path where the JSON-lines benchmark results will be appended
+log_file       = "logs/benchmark_vlm.json"
+
+[video_auditor]
+# Configuration for future temporal reasoning and anomaly detection
+model_id       = "Qwen/Qwen2.5-VL-3B-Instruct"
+threshold      = 0.75
