@@ -295,4 +295,3 @@ display(Markdown(response))
 # os.environ['DASHSCOPE_API_KEY'] = 'your_api_key_here'
 # response = inference_with_api(image_path, prompt)
 # display(Markdown(response))
-

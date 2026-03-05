@@ -313,4 +313,3 @@ if __name__ == "__main__":
 
     # Generate 3D plot with PERFECT HIT trajectories
     launcher.plot_3d()
-

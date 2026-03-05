@@ -410,4 +410,3 @@ if action['arguments']['action'] == "click":
     display(display_image)
 else:
     display(display_image)
-

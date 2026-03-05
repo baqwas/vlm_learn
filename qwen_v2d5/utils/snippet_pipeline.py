@@ -16,9 +16,9 @@ from transformers import pipeline, ImageTextToTextPipeline
 
 """
 2 Load the pipeline for image-text-to-text task
-Create an instance of the pipeline class, 
+Create an instance of the pipeline class,
 Specifying:
-    The task to be performed and 
+    The task to be performed and
     The model to be used
 This automatically loads the model and its associated processor and tokenizer.
 """
@@ -31,7 +31,7 @@ pipe: ImageTextToTextPipeline = pipeline(
 
 """
 3 Prepare the Multimodal Input
-For Qwen-VL, which handles both text and images, the input needs to be structured as a list of dictionaries. 
+For Qwen-VL, which handles both text and images, the input needs to be structured as a list of dictionaries.
 Each dictionary represents a turn in the conversation and contains the user's text and image(s).
 """
 messages = [

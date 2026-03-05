@@ -17,9 +17,9 @@ from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 
 """
 2 load the model and processor
-This is the core step. 
-Use the from_pretrained method on each of the Auto classes to load the correct components from the Hugging Face Hub. 
-The trust_remote_code=True parameter is often necessary for custom model architectures like Qwen-VL. 
+This is the core step.
+Use the from_pretrained method on each of the Auto classes to load the correct components from the Hugging Face Hub.
+The trust_remote_code=True parameter is often necessary for custom model architectures like Qwen-VL.
 You should also specify the torch_dtype and device_map to manage memory and device usage.
 """
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
@@ -60,8 +60,8 @@ inputs = processor.apply_chat_template(
 
 """
 4 Run Inference
-This is where the model processes the input and 
-generates a response 
+This is where the model processes the input and
+generates a response
 that is presented in a human-readable format.
 """
 generated_ids = model.generate(**inputs, max_new_tokens=128)

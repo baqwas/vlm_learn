@@ -68,16 +68,16 @@ model_id = "Qwen/Qwen2.5-VL-7B-Instruct"
 # The Qwen-VL model requires this specific class, not AutoModelForCausalLM.
 """
 Use torch_dtype="auto" for faster inference on GPU if available.
-This is the key line that makes the script portable. 
-Hugging Face's accelerate library (which is used under the hood by transformers when device_map is set) 
+This is the key line that makes the script portable.
+Hugging Face's accelerate library (which is used under the hood by transformers when device_map is set)
 intelligently distributes the model's layers across all available devices.
 The device_map="auto" setting will automatically place the model on the first available GPU if one is present.
 If a GPU is present, it will use that first.
 If there is no GPU, device_map="auto" will automatically default to loading the model onto the CPU.
-If the model's weights and activations exceed the available system RAM, 
-accelerate can even offload parts of the model to the hard drive, 
+If the model's weights and activations exceed the available system RAM,
+accelerate can even offload parts of the model to the hard drive,
 though this will make the already slow inference even slower.
-For practical, usable performance, 
+For practical, usable performance,
 a dedicated GPU with at least 8GB of VRAM (for the 3B model) is the minimum recommended hardware.
 """
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(

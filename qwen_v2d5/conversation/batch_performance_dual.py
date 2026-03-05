@@ -139,12 +139,12 @@ def text_image_generation_local(image_folder_path, output_log_file, db_config, p
         INSERT INTO performance_log_vlm (
             model_id,
             platform,
-            file_name, 
+            file_name,
             file_type,
-            query, 
-            response, 
-            generated_tokens, 
-            generation_time, 
+            query,
+            response,
+            generated_tokens,
+            generation_time,
             tokens_per_second,
             file_properties
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

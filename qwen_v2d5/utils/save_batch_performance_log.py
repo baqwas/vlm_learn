@@ -27,11 +27,11 @@ def insert_log_data_into_mariadb(log_file_path):
         # 3. SQL INSERT statement
         insert_query = """
         INSERT INTO image_performance_log (
-            image_file, 
-            query, 
-            response, 
-            generated_tokens, 
-            generation_time_seconds, 
+            image_file,
+            query,
+            response,
+            generated_tokens,
+            generation_time_seconds,
             tokens_per_second
         ) VALUES (%s, %s, %s, %s, %s, %s)
         """

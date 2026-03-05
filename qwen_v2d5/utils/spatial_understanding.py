@@ -523,4 +523,3 @@ response, input_height, input_width = inference(image_path, prompt, system_promp
 # os.environ['DASHSCOPE_API_KEY'] = 'your_api_key_here'
 # response = inference_with_api(image_path, prompt, sys_prompt=system_prompt)
 # print(response)
-

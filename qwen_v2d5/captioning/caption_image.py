@@ -330,8 +330,8 @@ def caption_image():
     8.1 Create a message in JSON format
     Qwen VL uses the same multi-turn message format as Qwen-2.5-Chat:
     The processor:
-        turns these messages into plain text (with special tokens) and 
-        extracts the visual tensors 
+        turns these messages into plain text (with special tokens) and
+        extracts the visual tensors
     so the model receives *both* modalities.
     """
     msgs = [
@@ -345,19 +345,19 @@ def caption_image():
     ]
     """
     8.2 Apply Single-Turn Multimodal Prompt Chat Template
-    Every chat model ships with a pattern. 
-    The above JSON format needs to be converted to this template and 
-    this is done using `apply_chat_template`. 
+    Every chat model ships with a pattern.
+    The above JSON format needs to be converted to this template and
+    this is done using `apply_chat_template`.
     It performs three tasks.
-    1. **Reads the model’s chat template**: 
+    1. **Reads the model’s chat template**:
         Qwen 2.5VL has a chat template that looks like `<|im_start|>{role}\n{content}<|im_end|>`.
-    2. **Fills in the template with the msgs list**. 
-        It loops over each message, swaps in the role (user, assistant, etc.) and 
+    2. **Fills in the template with the msgs list**.
+        It loops over each message, swaps in the role (user, assistant, etc.) and
         the content (text plus special <image> markers), and concatenates the result into one long string.
-    3. **Adds the “assistant starts talking now” marker** (add_generation_prompt=True). 
+    3. **Adds the “assistant starts talking now” marker** (add_generation_prompt=True).
         At the end it appends `<|im_start|>assistant`
-    The function will NOT tokenize the text because 
-    we are going to use the processor to process text and images together, and 
+    The function will NOT tokenize the text because
+    we are going to use the processor to process text and images together, and
     tokenization will be performed in that step.
     """
 
@@ -381,9 +381,9 @@ def caption_image():
 
     """
     8.3 Extract image & video inputs from `msg`
-    
+
     In the previous step we converted our message `msg` from JSON format to the chat template the model understands.
-    
+
     Now, we need to extract images and videos from `msg` using `process_vision_info` utility. It performs the following tasks
     1. Walks through every message,
     2. Finds all `"image"` / `"video"` entries,

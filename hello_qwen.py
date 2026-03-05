@@ -57,4 +57,3 @@ if image:
   image.save('2.jpg')
 else:
   print("no box")
-
