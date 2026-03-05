@@ -15,6 +15,7 @@ import cv2
 from PIL import Image
 import os
 
+
 def load_frame_as_pil(video_path, frame_number=0):
     """
     Loads a single frame from a video file as a PIL Image.
@@ -40,7 +41,9 @@ def load_frame_as_pil(video_path, frame_number=0):
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     if frame_number >= total_frames or frame_number < 0:
-        print(f"Error: Frame number {frame_number} is out of bounds. Video has {total_frames} frames.")
+        print(
+            f"Error: Frame number {frame_number} is out of bounds. Video has {total_frames} frames."
+        )
         cap.release()
         return None
 
@@ -59,7 +62,8 @@ def load_frame_as_pil(video_path, frame_number=0):
         print(f"Error: Could not read frame {frame_number} from {video_path}")
         return None
 
-    cap.release() # Release the video capture object
+    cap.release()  # Release the video capture object
+
 
 if __name__ == "__main__":
     # Example Usage:
@@ -78,8 +82,12 @@ if __name__ == "__main__":
             # For a programmatic approach, you might need more complex libraries
             # or pre-generate a video manually for testing.
             # For this example, we'll just indicate it's missing.
-            print("Please create 'test_video.mp4' manually for testing, e.g., using ffmpeg.")
-            print(f"Example: ffmpeg -f lavfi -i \"color=c=blue:s=640x480:d=1\" -pix_fmt yuv420p {dummy_video_path}")
+            print(
+                "Please create 'test_video.mp4' manually for testing, e.g., using ffmpeg."
+            )
+            print(
+                f'Example: ffmpeg -f lavfi -i "color=c=blue:s=640x480:d=1" -pix_fmt yuv420p {dummy_video_path}'
+            )
 
         except Exception as e:
             print(f"Could not create dummy video: {e}")

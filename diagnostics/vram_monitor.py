@@ -64,9 +64,9 @@ def monitor_vram(interval=0.5):
             info = pynvml.nvmlDeviceGetMemoryInfo(handle)
             temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
 
-            used_mb = info.used / 1024 ** 2
-            total_mb = info.total / 1024 ** 2
-            free_mb = info.free / 1024 ** 2
+            used_mb = info.used / 1024**2
+            total_mb = info.total / 1024**2
+            free_mb = info.free / 1024**2
             pct_used = (used_mb / total_mb) * 100
 
             # Track the peak
@@ -78,8 +78,10 @@ def monitor_vram(interval=0.5):
             alert = "⚠️  LOW HEADROOM!" if pct_used > 90 else ""
 
             timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-            print(f"{timestamp:<20} | {used_mb:>6.0f}/{total_mb:>6.0f} MB | {free_mb:>6.0f} MB | {temp:>3}°C  {alert}",
-                  end='\r')
+            print(
+                f"{timestamp:<20} | {used_mb:>6.0f}/{total_mb:>6.0f} MB | {free_mb:>6.0f} MB | {temp:>3}°C  {alert}",
+                end="\r",
+            )
 
             time.sleep(interval)
 
@@ -87,12 +89,13 @@ def monitor_vram(interval=0.5):
         print("\n\n🏁 Monitoring stopped.")
         if peak_used > 0:
             log_entry = (
-                    f"\n--- SESSION SUMMARY ({datetime.now().strftime('%Y-%m-%d')}) ---\n"
-                    f"Device: {device_name}\n"
-                    f"Peak VRAM Usage: {peak_used:.2f} MB\n"
-                    f"Recorded At: {peak_time}\n"
-                    f"{'Status: CRITICAL' if peak_used > 5500 else 'Status: STABLE'}\n"
-                    + "-" * 40 + "\n"
+                f"\n--- SESSION SUMMARY ({datetime.now().strftime('%Y-%m-%d')}) ---\n"
+                f"Device: {device_name}\n"
+                f"Peak VRAM Usage: {peak_used:.2f} MB\n"
+                f"Recorded At: {peak_time}\n"
+                f"{'Status: CRITICAL' if peak_used > 5500 else 'Status: STABLE'}\n"
+                + "-" * 40
+                + "\n"
             )
             with open(log_file, "a") as f:
                 f.write(log_entry)

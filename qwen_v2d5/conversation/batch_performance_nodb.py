@@ -11,10 +11,11 @@ import argparse, configparser
 import torch
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from PIL import Image, UnidentifiedImageError
-import json                     # to work with JSON data
-import os, time                 # Add this import at the top
+import json  # to work with JSON data
+import os, time  # Add this import at the top
 
 APP_NAME = "batch_performance"
+
 
 def text_image_generation_local(image_folder_path, output_log_file):
     """
@@ -29,10 +30,7 @@ def text_image_generation_local(image_folder_path, output_log_file):
     try:
         # Load the model using its specific class
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype="auto",
-            device_map="auto",
-            trust_remote_code=True
+            model_id, torch_dtype="auto", device_map="auto", trust_remote_code=True
         )
 
         # FIX: Use AutoProcessor and set `use_fast=False` to explicitly use the slow processor
@@ -40,31 +38,37 @@ def text_image_generation_local(image_folder_path, output_log_file):
         # Alternatively, you could try setting `use_fast=True` to use the new, faster one.
         # This will eliminate the first warning.
         processor = AutoProcessor.from_pretrained(
-            "qwen-local-processor",
-            trust_remote_code=True,
-            use_fast=False
+            "qwen-local-processor", trust_remote_code=True, use_fast=False
         )  # Use the slow processor as recommended for BeUlta machine
         print("Model and processor loaded successfully!")
 
     except Exception as e:
         print(f"Error loading model or processor: {e}")
-        print("Please ensure you have installed `transformers`, `torch`, `pillow`, `accelerate` and `qwen-vl-utils`.")
+        print(
+            "Please ensure you have installed `transformers`, `torch`, `pillow`, `accelerate` and `qwen-vl-utils`."
+        )
         return None
 
     # 3. Prepare the image (read from the local project folder)
     query = "Describe the image in detail."
     try:
         # Create a list of image files to process
-        image_files = [f for f in os.listdir(image_folder_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        image_files = [
+            f
+            for f in os.listdir(image_folder_path)
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
         if not image_files:
-            print(f"No images (filetypes: JPG, JPEG or PNG) found in the folder: {image_folder_path}")
+            print(
+                f"No images (filetypes: JPG, JPEG or PNG) found in the folder: {image_folder_path}"
+            )
             return None
     except FileNotFoundError:
         print(f"Error: The image folder '{image_folder_path}' was not found.")
         return None
 
     # Open the log file in appended mode
-    with open(output_log_file, 'a') as log_file:
+    with open(output_log_file, "a") as log_file:
         log_file.write("--- Image Captioning Performance Log ---\n")
         log_file.write(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
@@ -79,38 +83,32 @@ def text_image_generation_local(image_folder_path, output_log_file):
 
                 # Prepare the input for the model
                 messages = [
-                    {
-                        "role": "user",
-                        "content": [{"image": image, "text": query}]
-                    }
+                    {"role": "user", "content": [{"image": image, "text": query}]}
                 ]
                 text = processor.apply_chat_template(
-                    messages,
-                    tokenize=False,
-                    add_generation_prompt=True
+                    messages, tokenize=False, add_generation_prompt=True
                 )
 
-                inputs = processor(
-                    text=[text],
-                    images=[image],
-                    return_tensors="pt"
-                ).to(model.device)
+                inputs = processor(text=[text], images=[image], return_tensors="pt").to(
+                    model.device
+                )
 
                 print(f"Asking the model to {query} ...")
 
                 # Generate the response and measure performance
                 start_time = time.time()
                 generated_ids = model.generate(
-                    **inputs,
-                    max_new_tokens=512,
-                    do_sample=True,
-                    temperature=0.7
+                    **inputs, max_new_tokens=512, do_sample=True, temperature=0.7
                 )
                 end_time = time.time()
                 generation_time = end_time - start_time
-                num_generated_tokens = generated_ids.shape[1] - inputs.input_ids.shape[1]
+                num_generated_tokens = (
+                    generated_ids.shape[1] - inputs.input_ids.shape[1]
+                )
 
-                response = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                response = processor.batch_decode(
+                    generated_ids, skip_special_tokens=True
+                )[0]
 
                 # Write results to the log file (now inside the loop)
                 json_record = {
@@ -119,10 +117,12 @@ def text_image_generation_local(image_folder_path, output_log_file):
                     "query": query,
                     "response": response,
                     "generated_tokens": num_generated_tokens,
-                    "generation_time_seconds": round(generation_time, 2)
+                    "generation_time_seconds": round(generation_time, 2),
                 }
                 if generation_time > 0:
-                    json_record["tokens_per_second"] = round(num_generated_tokens / generation_time, 2)
+                    json_record["tokens_per_second"] = round(
+                        num_generated_tokens / generation_time, 2
+                    )
 
                 log_file.write(json.dumps(json_record) + "\n")
 
@@ -131,10 +131,14 @@ def text_image_generation_local(image_folder_path, output_log_file):
                 print(f"Response: {response}")
 
             except UnidentifiedImageError:
-                print(f"Error: The file '{image_file}' is not a valid image file. Skipping.")
+                print(
+                    f"Error: The file '{image_file}' is not a valid image file. Skipping."
+                )
                 continue
             except Exception as e:
-                print(f"An unexpected error occurred while processing '{image_file}': {e}. Skipping.")
+                print(
+                    f"An unexpected error occurred while processing '{image_file}': {e}. Skipping."
+                )
                 continue
 
 
@@ -151,13 +155,13 @@ if __name__ == "__main__":
         type=str,
         default=f"{APP_NAME}.ini",
         help="Optional path to a configuration file to load default settings from "
-             f"(default: '{APP_NAME}.ini')."
+        f"(default: '{APP_NAME}.ini').",
     )
     config = configparser.ConfigParser()
     defaults = dict(
         folder="../images/album",
         model_name="Qwen/Qwen2.5-VL-7B-Instruct",
-        kpi_log=f"{APP_NAME}.log"
+        kpi_log=f"{APP_NAME}.log",
     )
     config_args, unknown = parser.parse_known_args()
     config_file_name = config_args.config_file
@@ -167,13 +171,13 @@ if __name__ == "__main__":
         "--folder",
         type=str,
         default=defaults["folder"],
-        help="Path to the folder containing images (default: ../images/album)"
+        help="Path to the folder containing images (default: ../images/album)",
     )
     parser.add_argument(
         "--kpi_log",
         type=str,
         default=defaults["kpi_log"],
-        help=")Path to the log file for performance metrics (default: performance_log.txt)"
+        help=")Path to the log file for performance metrics (default: performance_log.txt)",
     )
     if os.path.exists(config_file_name):
         config.read(config_file_name)
@@ -184,9 +188,13 @@ if __name__ == "__main__":
             if "kpi_log" in config["Settings"]:
                 defaults["kpi_log"] = config["Settings"]["kpi_log"]
         else:
-            print(f"Warning: No '[Settings]' section found in '{config_file_name}'. Using hardcoded defaults.")
+            print(
+                f"Warning: No '[Settings]' section found in '{config_file_name}'. Using hardcoded defaults."
+            )
     else:
-        print(f"Warning: Configuration file '{config_file_name}' not found. Using hardcoded defaults.")
+        print(
+            f"Warning: Configuration file '{config_file_name}' not found. Using hardcoded defaults."
+        )
     album = os.path.join(script_dir, defaults["folder"])
     print(f"Using folder: {album} & kpi_log file: {defaults['kpi_log']}")
 

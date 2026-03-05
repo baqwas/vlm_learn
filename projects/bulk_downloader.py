@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+bulk_downloader.py
+"""
 import os
 import requests
 from pathlib import Path
@@ -40,16 +44,12 @@ def download_bulk_images():
         print(f"🚀 Sourcing {img_count} images for: {folder_name.upper()}...")
 
         url = "https://api.unsplash.com/search/photos"
-        params = {
-            "query": query,
-            "per_page": img_count,
-            "orientation": "squarish"
-        }
+        params = {"query": query, "per_page": img_count, "orientation": "squarish"}
 
         response = requests.get(url, params=params, headers=headers)
 
         if response.status_code == 200:
-            results = response.json().get('results', [])
+            results = response.json().get("results", [])
             for i, item in enumerate(results):
                 # Dynamically set resolution via URL parameters
                 img_url = f"{item['urls']['raw']}&w={w}&h={h}&fit=crop"
@@ -58,7 +58,7 @@ def download_bulk_images():
                     img_data = requests.get(img_url).content
                     filename = f"{folder_name}_{i + 1:02d}.jpg"
 
-                    with open(target_dir / filename, 'wb') as handler:
+                    with open(target_dir / filename, "wb") as handler:
                         handler.write(img_data)
                     print(f"  ✅ Saved: {filename}")
                 except Exception as e:

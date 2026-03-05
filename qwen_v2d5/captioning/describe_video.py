@@ -24,10 +24,7 @@ model_id = "Qwen/Qwen2.5-VL-7B-Instruct"
 
 # 2. Load the model and processor
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-    model_id,
-    device_map="auto",
-    torch_dtype="auto",
-    trust_remote_code=True
+    model_id, device_map="auto", torch_dtype="auto", trust_remote_code=True
 )
 processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
@@ -48,8 +45,8 @@ messages = [
                 "video": video_file_path,  # Use a local file path or URL
                 "fps": 1.0,  # Process 1 frame per second
             },
-            {"type": "text", "text": query}
-        ]
+            {"type": "text", "text": query},
+        ],
     }
 ]
 
@@ -68,9 +65,9 @@ image_inputs, video_inputs = process_vision_info(messages)
 
 # Step 3: Pass the text string and the video object to the processor
 inputs = processor(
-    text=[text],              # Pass the formatted text string
-    images=image_inputs,      # Pass the image list (will be empty for video)
-    videos=video_inputs,      # Pass the video list
+    text=[text],  # Pass the formatted text string
+    images=image_inputs,  # Pass the image list (will be empty for video)
+    videos=video_inputs,  # Pass the video list
     return_tensors="pt",
 ).to(model.device)
 
@@ -82,7 +79,7 @@ generated_ids = model.generate(
 
 # 7. Decode the response
 decoded_output = processor.batch_decode(
-    generated_ids[:, inputs["input_ids"].shape[1]:],
+    generated_ids[:, inputs["input_ids"].shape[1] :],
     skip_special_tokens=True,
 )
 

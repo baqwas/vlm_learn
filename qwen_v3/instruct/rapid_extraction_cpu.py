@@ -25,14 +25,22 @@ DTYPE = torch.float32
 # --- Pydantic Data Schemas for API ---
 class ImageInferenceRequest(BaseModel):
     """Schema for the incoming API request payload."""
+
     base64_image: str = Field(..., description="Base64 encoded image string.")
-    prompt: str = Field(..., description="The textual prompt or question for the model.")
-    max_new_tokens: int = Field(50, ge=1, le=512, description="Maximum tokens to generate.")
-    temperature: float = Field(0.5, ge=0.01, le=1.0, description="Sampling temperature for generation.")
+    prompt: str = Field(
+        ..., description="The textual prompt or question for the model."
+    )
+    max_new_tokens: int = Field(
+        50, ge=1, le=512, description="Maximum tokens to generate."
+    )
+    temperature: float = Field(
+        0.5, ge=0.01, le=1.0, description="Sampling temperature for generation."
+    )
 
 
 class InferenceResponse(BaseModel):
     """Schema for the outgoing API response."""
+
     model_id: str
     response: str
     time_ms: int
@@ -54,22 +62,26 @@ class ModelDeployment:
             MODEL_ID,
             device_map=DEVICE,  # Load onto CPU RAM
             dtype=DTYPE,  # Use standard float32 for CPU
-            trust_remote_code=True
+            trust_remote_code=True,
         )
         # 2. Load Processor
         self.processor = AutoProcessor.from_pretrained(MODEL_ID, trust_remote_code=True)
         print("✅ Hugging Face CPU Model Initialization Complete.")
 
-    def decode_and_prepare_input(self, base64_image: str, prompt: str) -> Tuple[torch.Tensor, int]:
+    def decode_and_prepare_input(
+        self, base64_image: str, prompt: str
+    ) -> Tuple[torch.Tensor, int]:
         """Decodes the Base64 image and prepares the multimodal input tensors."""
         try:
             # 1. Decode Base64 image to PIL Image
-            if ',' in base64_image:
-                base64_image = base64_image.split(',', 1)[1]
+            if "," in base64_image:
+                base64_image = base64_image.split(",", 1)[1]
             image_data = base64.b64decode(base64_image)
-            image_pil = Image.open(io.BytesIO(image_data)).convert('RGB')
+            image_pil = Image.open(io.BytesIO(image_data)).convert("RGB")
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid Base64 image data: {e}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid Base64 image data: {e}"
+            )
 
         # 2. Construct the chat message list (as required by Qwen)
         messages = [
@@ -77,7 +89,7 @@ class ModelDeployment:
                 "role": "user",
                 "content": [
                     {"type": "image", "image": image_pil},
-                    {"type": "text", "text": prompt}
+                    {"type": "text", "text": prompt},
                 ],
             }
         ]
@@ -88,7 +100,7 @@ class ModelDeployment:
             tokenize=True,
             add_generation_prompt=True,
             return_dict=True,
-            return_tensors="pt"
+            return_tensors="pt",
         )
 
         # 4. Move inputs to the CPU
@@ -97,7 +109,12 @@ class ModelDeployment:
         # Return inputs and the length of the input tokens for decoding
         return inputs, inputs["input_ids"].shape[-1]
 
-    def generate(self, inputs: Dict[str, torch.Tensor], input_length: int, params: ImageInferenceRequest) -> str:
+    def generate(
+        self,
+        inputs: Dict[str, torch.Tensor],
+        input_length: int,
+        params: ImageInferenceRequest,
+    ) -> str:
         """Synchronously calls the model's generate function."""
 
         # This function blocks the thread while the CPU calculates the response.
@@ -112,7 +129,9 @@ class ModelDeployment:
 
         # Decode the generated IDs, skipping the input prompt tokens
         generated_ids_trimmed = outputs[0][input_length:].tolist()
-        response = self.processor.decode(generated_ids_trimmed, skip_special_tokens=True)
+        response = self.processor.decode(
+            generated_ids_trimmed, skip_special_tokens=True
+        )
 
         return response.strip(), len(generated_ids_trimmed)
 
@@ -121,7 +140,7 @@ class ModelDeployment:
 app = FastAPI(
     title="Qwen3-VL 2B CPU Inference API (Slow)",
     description="Low-throughput deployment using Hugging Face on CPU.",
-    version="1.0.0"
+    version="1.0.0",
 )
 # Initialize the model globally (this loads the model into RAM)
 model_deployment = ModelDeployment()
@@ -138,8 +157,7 @@ async def generate_response(request: ImageInferenceRequest):
     try:
         # Prepare input: decode base64 and format prompt
         inputs, input_length = model_deployment.decode_and_prepare_input(
-            request.base64_image,
-            request.prompt
+            request.base64_image, request.prompt
         )
 
         start_time = datetime.now()
@@ -148,23 +166,22 @@ async def generate_response(request: ImageInferenceRequest):
         # Run the blocking model.generate() call in a separate thread.
         # This keeps the main FastAPI event loop free to handle other requests.
         generated_text, num_generated_tokens = await asyncio.to_thread(
-            model_deployment.generate,
-            inputs,
-            input_length,
-            request
+            model_deployment.generate, inputs, input_length, request
         )
 
         end_time = datetime.now()
         duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
         # Calculate throughput metric
-        tokens_per_second = num_generated_tokens / (duration_ms / 1000) if duration_ms > 0 else 0
+        tokens_per_second = (
+            num_generated_tokens / (duration_ms / 1000) if duration_ms > 0 else 0
+        )
 
         return InferenceResponse(
             model_id=MODEL_ID,
             response=generated_text,
             time_ms=duration_ms,
-            tokens_per_second=tokens_per_second
+            tokens_per_second=tokens_per_second,
         )
 
     except HTTPException:
@@ -173,7 +190,7 @@ async def generate_response(request: ImageInferenceRequest):
         print(f"Internal generation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred during inference: {e}"
+            detail=f"An error occurred during inference: {e}",
         )
 
 
@@ -181,7 +198,9 @@ async def generate_response(request: ImageInferenceRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    print(f"⚠️ WARNING: Running Qwen3-VL 2B on CPU. Expect long latencies (seconds to minutes) per request.")
+    print(
+        f"⚠️ WARNING: Running Qwen3-VL 2B on CPU. Expect long latencies (seconds to minutes) per request."
+    )
     print(f"Server is starting. Access API at http://0.0.0.0:8000/docs for testing.")
 
     # Use multiple worker processes (e.g., 4) to handle multiple requests concurrently,

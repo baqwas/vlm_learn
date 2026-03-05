@@ -15,7 +15,9 @@ import torch
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 
 # Load the model in half-precision on the available device(s)
-model = Qwen2VLForConditionalGeneration.from_pretrained("Qwen/Qwen2-VL-7B-Instruct", device_map="auto")
+model = Qwen2VLForConditionalGeneration.from_pretrained(
+    "Qwen/Qwen2-VL-7B-Instruct", device_map="auto"
+)
 processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-7B-Instruct")
 
 # Define the conversations with mixed media inputs
@@ -25,8 +27,8 @@ conversation1 = [
         "role": "user",
         "content": [
             {"type": "image", "path": "../images/4sa.jpg"},
-            {"type": "text", "text": "Describe this image."}
-        ]
+            {"type": "text", "text": "Describe this image."},
+        ],
     }
 ]
 
@@ -37,18 +39,13 @@ conversation2 = [
         "content": [
             {"type": "image", "path": "../images/latex.png"},
             {"type": "image", "path": "../images/ocrreceipt.png"},
-            {"type": "text", "text": "What is written in the pictures?"}
-        ]
+            {"type": "text", "text": "What is written in the pictures?"},
+        ],
     }
 ]
 
 # Conversation with pure text
-conversation3 = [
-    {
-        "role": "user",
-        "content": "who are you?"
-    }
-]
+conversation3 = [{"role": "user", "content": "who are you?"}]
 
 
 # Conversation with mixed midia
@@ -64,7 +61,7 @@ conversation4 = [
     }
 ]
 
-conversations = [conversation1] #, conversation2, conversation3, conversation4] # <==
+conversations = [conversation1]  # , conversation2, conversation3, conversation4] # <==
 # Preparation for batch inference
 inputs = processor.apply_chat_template(
     conversations,
@@ -72,12 +69,17 @@ inputs = processor.apply_chat_template(
     add_generation_prompt=True,
     tokenize=True,
     return_dict=True,
-    return_tensors="pt"
+    return_tensors="pt",
 ).to(model.device)
 
 
 # Batch Inference
 output_ids = model.generate(**inputs, max_new_tokens=128)
-generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs.input_ids, output_ids)]
-output_text = processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+generated_ids = [
+    output_ids[len(input_ids) :]
+    for input_ids, output_ids in zip(inputs.input_ids, output_ids)
+]
+output_text = processor.batch_decode(
+    generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
+)
 print(output_text)

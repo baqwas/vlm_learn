@@ -69,7 +69,7 @@ def setup_logging(log_path):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()]
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
     )
     return logging.getLogger("Visual_Auditor")
 
@@ -102,10 +102,7 @@ def run_audit_session():
 
         # Load the model in Bfloat16 which is the most efficient format for modern CPUs
         model = Qwen3VLForConditionalGeneration.from_pretrained(
-            vlm_id,
-            torch_dtype=torch.bfloat16,
-            device_map="cpu",
-            trust_remote_code=True
+            vlm_id, torch_dtype=torch.bfloat16, device_map="cpu", trust_remote_code=True
         )
     except Exception as e:
         logger.error(f"Failed to initialize VLM: {e}")
@@ -117,7 +114,13 @@ def run_audit_session():
         logger.error(f"Directory not found: {target_dir}")
         return
 
-    images = sorted([f for f in os.listdir(target_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+    images = sorted(
+        [
+            f
+            for f in os.listdir(target_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg"))
+        ]
+    )
 
     if not images:
         logger.error(f"No images found in {target_dir}")
@@ -142,9 +145,9 @@ def run_audit_session():
 
     while True:
         user_query = input("AUDITOR QUESTION >> ").strip()
-        if user_query.lower() in ['exit', 'quit']:
+        if user_query.lower() in ["exit", "quit"]:
             break
-        if user_query.lower() == 'clear':
+        if user_query.lower() == "clear":
             print("Context cleared (simulation).")
             continue
 
@@ -152,20 +155,22 @@ def run_audit_session():
         messages = [
             {
                 "role": "system",
-                "content": [{"type": "text", "text": config["vqa"]["system_prompt"]}]
+                "content": [{"type": "text", "text": config["vqa"]["system_prompt"]}],
             },
             {
                 "role": "user",
                 "content": [
                     {"type": "image", "image": str(target_img_path)},
-                    {"type": "text", "text": user_query}
+                    {"type": "text", "text": user_query},
                 ],
-            }
+            },
         ]
 
         try:
             # Prepare prompts and vision info
-            text_prompt = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            text_prompt = processor.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
             image_inputs, video_inputs = process_vision_info(messages)
 
             # Process inputs to CPU
@@ -174,7 +179,7 @@ def run_audit_session():
                 images=image_inputs,
                 videos=video_inputs,
                 padding=True,
-                return_tensors="pt"
+                return_tensors="pt",
             ).to(device)
 
             # Generate response
@@ -183,13 +188,12 @@ def run_audit_session():
                 **inputs,
                 max_new_tokens=config["vqa"].get("max_new_tokens", 512),
                 temperature=config["vqa"].get("temperature", 0.2),
-                do_sample=True if config["vqa"].get("temperature", 0.2) > 0 else False
+                do_sample=True if config["vqa"].get("temperature", 0.2) > 0 else False,
             )
 
             # Decode and trim prompt from response
             response = processor.batch_decode(
-                generated_ids[:, inputs.input_ids.shape[1]:],
-                skip_special_tokens=True
+                generated_ids[:, inputs.input_ids.shape[1] :], skip_special_tokens=True
             )[0]
 
             print(f"\nAI AUDIT REPORT:\n{response}\n" + "-" * 50)

@@ -12,8 +12,9 @@ from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 
 load_dotenv()
-#vision_llm = ChatOpenAI(model="gpt-4o")
-vision_llm = ChatOllama(model = "qwen2.5vl")
+# vision_llm = ChatOpenAI(model="gpt-4o")
+vision_llm = ChatOllama(model="qwen2.5vl")
+
 
 @tool
 def extract_text(img_path: str) -> str:
@@ -52,10 +53,8 @@ def extract_text(img_path: str) -> str:
                     },
                     {
                         "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{image_base64}"
-                        }
-                    }
+                        "image_url": {"url": f"data:image/png;base64,{image_base64}"},
+                    },
                 ]
             )
         ]

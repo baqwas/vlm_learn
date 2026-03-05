@@ -36,6 +36,7 @@ tools = [
 llm = ChatOllama(model="qwen3:8b", temperature=0.7)
 llm_with_tools = llm.bind_tools(tools)
 
+
 def assistant(state: AgentState):
     textual_description_of_tools = """
     def extract_text(img_path: str) -> str:
@@ -54,14 +55,16 @@ def assistant(state: AgentState):
     """
 
     image = state["input_file"]
-    sys_msg = SystemMessage(content=f"""
+    sys_msg = SystemMessage(
+        content=f"""
     You are a helpful assistant. You can analyse documents with provided tools:\n{textual_description_of_tools}.
 
-    You have access to some optional images. Currently the loaded image is: {image}""")
+    You have access to some optional images. Currently the loaded image is: {image}"""
+    )
 
     return {
         "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
-        "input_file": state["input_file"]
+        "input_file": state["input_file"],
     }
 
 
@@ -71,10 +74,7 @@ builder.add_node("assistant", assistant)
 builder.add_node("tools", ToolNode(tools))
 
 builder.add_edge(START, "assistant")
-builder.add_conditional_edges(
-    "assistant",
-    tools_condition
-)
+builder.add_conditional_edges("assistant", tools_condition)
 builder.add_edge("tools", "assistant")
 react_graph = builder.compile()
 
@@ -82,7 +82,6 @@ if __name__ == "__main__":
     user_prompt = "Please transcribe the provided image."
 
     messages = [HumanMessage(content=user_prompt)]
-    messages = react_graph.invoke(({
-        "messages": messages,
-        "input_file": "images/chocolate_cake_recipe.png"
-    }))
+    messages = react_graph.invoke(
+        ({"messages": messages, "input_file": "images/chocolate_cake_recipe.png"})
+    )

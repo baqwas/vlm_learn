@@ -18,6 +18,7 @@ from transformers import pipeline
 from PIL import Image
 import os
 
+
 def text_image_pipeline_local():
     # 1. Define the model ID
     model_id = "Qwen/Qwen2.5-VL-7B-Instruct"
@@ -30,18 +31,27 @@ def text_image_pipeline_local():
         pipe = pipeline(
             task="image-text-to-text",
             model=model_id,
-            device=0 if torch.cuda.is_available() else -1,  # Use GPU (device 0) if available, else CPU (-1)
-            torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float32
+            device=(
+                0 if torch.cuda.is_available() else -1
+            ),  # Use GPU (device 0) if available, else CPU (-1)
+            torch_dtype=(
+                torch.bfloat16
+                if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+                else torch.float32
+            ),
         )
         print("Pipeline loaded successfully!")
     except Exception as e:
         print(f"Error loading pipeline: {e}")
         print(
-            "Ensure you have installed all prerequisites and your environment is correctly set up for GPU if attempting to use it.")
+            "Ensure you have installed all prerequisites and your environment is correctly set up for GPU if attempting to use it."
+        )
         return
 
     # 3. Prepare an image (read from local project folder)
-    image_dataset = "ocrssp.png"  # Make sure this image exists in the ../images/ directory
+    image_dataset = (
+        "ocrssp.png"  # Make sure this image exists in the ../images/ directory
+    )
     script_dir = os.path.dirname(__file__)
     image_path = os.path.join(script_dir, "../images", image_dataset)
     # Define the queryfor the image
@@ -53,7 +63,9 @@ def text_image_pipeline_local():
         print(f"Image loaded from local path: {image_path}")
     except FileNotFoundError:
         print(f"Error: Image file not found at {image_path}.")
-        print("Please ensure you have an '../images' folder in the same directory as this script,")
+        print(
+            "Please ensure you have an '../images' folder in the same directory as this script,"
+        )
         print(f"and '{image_dataset}' is inside it.")
         return
     except Exception as e:
@@ -68,7 +80,7 @@ def text_image_pipeline_local():
             "content": [
                 {"type": "image", "image": image},  # Pass the PIL Image object directly
                 {"type": "text", "text": query},
-            ]
+            ],
         }
     ]
 
@@ -85,13 +97,16 @@ def text_image_pipeline_local():
         if results and isinstance(results, list) and len(results) > 0:
             # The result is typically a list of dictionaries, each with a 'generated_text' key
             # Access the first item in the list and then the 'generated_text' key
-            generated_description = results[0].get('generated_text', 'No description found.')
+            generated_description = results[0].get(
+                "generated_text", "No description found."
+            )
             print(f"Description: {generated_description}")
         else:
             print("No description could be generated.")
 
     except Exception as e:
         print(f"An error occurred during pipeline execution: {e}")
+
 
 if __name__ == "__main__":
     text_image_pipeline_local()

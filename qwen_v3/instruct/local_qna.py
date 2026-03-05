@@ -54,7 +54,9 @@ DEFAULT_MAX_NEW_TOKENS: int = 100
 DEFAULT_TEMPERATURE: float = 0.7
 DEFAULT_TOP_P: float = 0.8
 # Original Internet URL (kept for reference)
-SAMPLE_IMAGE_URL: str = "https://aeropuertosglobales.com/wp-content/uploads/Aeropuerto-Internacional-Chicago-OHare-ORD-900x600.jpg"
+SAMPLE_IMAGE_URL: str = (
+    "https://aeropuertosglobales.com/wp-content/uploads/Aeropuerto-Internacional-Chicago-OHare-ORD-900x600.jpg"
+)
 # New constant: Local image path to be used instead of the URL
 DEFAULT_LOCAL_IMAGE_PATH: str = "/qwen_v3/images/shrimp.jpg"
 # DEFAULT_LOCAL_IMAGE_PATH: str = "/home/reza/PycharmProjects/vlm_learn/qwen_v3/images/submersible.jpg"
@@ -65,15 +67,20 @@ class QwenVLDemoHelper:
     A minimal helper class for running Qwen3-VL inference demonstrations.
     """
 
-    def __init__(self, model_id: str = MODEL_ID, device: str = DEVICE, dtype: torch.dtype = DTYPE):
+    def __init__(
+        self, model_id: str = MODEL_ID, device: str = DEVICE, dtype: torch.dtype = DTYPE
+    ):
         self.model_id = model_id
         self.device = device
         self.dtype = dtype
-        self.model, self.processor = self._load_model_and_processor(model_id, device, dtype)
+        self.model, self.processor = self._load_model_and_processor(
+            model_id, device, dtype
+        )
         print(f"Model initialized on: {self.device} with dtype: {self.dtype}")
 
-    def _load_model_and_processor(self, model_id: str, device: str, dtype: torch.dtype) -> Tuple[
-        AutoModelForImageTextToText, AutoProcessor]:
+    def _load_model_and_processor(
+        self, model_id: str, device: str, dtype: torch.dtype
+    ) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
         """Loads the Qwen3-VL model and its associated processor."""
         print(f"Loading model **{model_id}**...")
         hf_token = os.environ.get("HF_TOKEN")
@@ -84,9 +91,11 @@ class QwenVLDemoHelper:
             device_map=device,
             dtype=dtype,
             trust_remote_code=True,
-            token=hf_token
+            token=hf_token,
         )
-        processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, token=hf_token)
+        processor = AutoProcessor.from_pretrained(
+            model_id, trust_remote_code=True, token=hf_token
+        )
         print("✅ Model loaded successfully.")
         return model, processor
 
@@ -100,14 +109,14 @@ class QwenVLDemoHelper:
         response = requests.get(image_url, stream=True)
         response.raise_for_status()  # Raise an exception for bad status codes
 
-        img = Image.open(io.BytesIO(response.content)).convert('RGB')
+        img = Image.open(io.BytesIO(response.content)).convert("RGB")
 
         # 1. Save the image to an in-memory buffer
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG')  # Use a standard format for encoding
+        img.save(buffer, format="JPEG")  # Use a standard format for encoding
 
         # 2. Encode the buffer content to Base64
-        base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        base64_string = base64.b64encode(buffer.getvalue()).decode("utf-8")
         print("✅ Sample image downloaded and encoded to Base64.")
         return base64_string
 
@@ -118,7 +127,7 @@ class QwenVLDemoHelper:
         """
         print(f"Reading sample image from local path: {image_path}")
         try:
-            img = Image.open(image_path).convert('RGB')
+            img = Image.open(image_path).convert("RGB")
         except FileNotFoundError:
             # Re-raise with a more informative message if the file is not found
             raise FileNotFoundError(f"Local image file not found: {image_path}")
@@ -127,42 +136,44 @@ class QwenVLDemoHelper:
 
         # 1. Save the image to an in-memory buffer
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG')  # Use a standard format for encoding
+        img.save(buffer, format="JPEG")  # Use a standard format for encoding
 
         # 2. Encode the buffer content to Base64
-        base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        base64_string = base64.b64encode(buffer.getvalue()).decode("utf-8")
         print("✅ Sample image read and encoded to Base64.")
         return base64_string
 
     def decode_base64_to_image(self, base64_string: str) -> Image.Image:
         """Decodes Base64 string into a PIL Image object."""
         # Simple check for data URI prefix (if present)
-        if ',' in base64_string:
-            base64_string = base64_string.split(',', 1)[1]
+        if "," in base64_string:
+            base64_string = base64_string.split(",", 1)[1]
 
         image_data = base64.b64decode(base64_string)
-        image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        image = Image.open(io.BytesIO(image_data)).convert("RGB")
         return image
 
-    def _prepare_multimodal_input(self, image: Image.Image, prompt_text: str) -> List[Dict[str, Any]]:
+    def _prepare_multimodal_input(
+        self, image: Image.Image, prompt_text: str
+    ) -> List[Dict[str, Any]]:
         """Constructs the chat messages structure."""
         messages = [
             {
                 "role": "user",
                 "content": [
                     {"type": "image", "image": image},
-                    {"type": "text", "text": prompt_text}
+                    {"type": "text", "text": prompt_text},
                 ],
             }
         ]
         return messages
 
     def _generate_response(
-            self,
-            messages: List[Dict[str, Any]],
-            max_new_tokens: int,
-            temperature: float,
-            top_p: float = DEFAULT_TOP_P
+        self,
+        messages: List[Dict[str, Any]],
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float = DEFAULT_TOP_P,
     ) -> str:
         """Processes input and generates a response."""
         inputs = self.processor.apply_chat_template(
@@ -170,7 +181,7 @@ class QwenVLDemoHelper:
             tokenize=True,
             add_generation_prompt=True,
             return_dict=True,
-            return_tensors="pt"
+            return_tensors="pt",
         )
 
         # Ensure inputs are on the same device as the model (CPU)
@@ -183,11 +194,13 @@ class QwenVLDemoHelper:
             do_sample=True,
             temperature=temperature,
             top_p=top_p,
-            num_beams=1
+            num_beams=1,
         )
         duration = (datetime.now() - start_time).total_seconds()
 
-        response = self.processor.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        response = self.processor.decode(
+            outputs[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True
+        )
 
         return response.strip(), duration
 
@@ -199,9 +212,7 @@ class QwenVLDemoHelper:
 
             print(f"\n[Running Prompt]: {prompt}")
             response, duration = self._generate_response(
-                messages,
-                DEFAULT_MAX_NEW_TOKENS,
-                DEFAULT_TEMPERATURE
+                messages, DEFAULT_MAX_NEW_TOKENS, DEFAULT_TEMPERATURE
             )
             return response, duration
 
@@ -215,12 +226,15 @@ def main():
         # Read the image from a local path and get the Base64 string
         print("\n--- Preparing Image from Local File ---")
         if not os.path.exists(DEFAULT_LOCAL_IMAGE_PATH):
-             # Re-raise a FileNotFoundError if the file is not where expected
-             raise FileNotFoundError(f"Local image file not found at: {DEFAULT_LOCAL_IMAGE_PATH}. Please update the path.")
+            # Re-raise a FileNotFoundError if the file is not where expected
+            raise FileNotFoundError(
+                f"Local image file not found at: {DEFAULT_LOCAL_IMAGE_PATH}. Please update the path."
+            )
 
         # Use the new method to read from the local file
-        encoded_image = QwenVLDemoHelper.read_and_encode_local_image(DEFAULT_LOCAL_IMAGE_PATH)
-
+        encoded_image = QwenVLDemoHelper.read_and_encode_local_image(
+            DEFAULT_LOCAL_IMAGE_PATH
+        )
 
         # Initialize the model (This step takes the most time and memory)
         print("\n--- Initializing Qwen3-VL 2B Instruct ---")
@@ -232,18 +246,18 @@ def main():
             {
                 "type": "Image Description",
                 "prompt": "Describe this picture in a single, short sentence.",
-                "notes": "Tests basic object recognition and scene summarization."
+                "notes": "Tests basic object recognition and scene summarization.",
             },
             {
                 "type": "Visual Question Answering (Attribute)",
                 "prompt": "What are the colors of the dominant items in the image?",
-                "notes": "Tests attribute identification (color of a specific object)."
+                "notes": "Tests attribute identification (color of a specific object).",
             },
             {
                 "type": "Visual Question Answering (Object Count)",
                 "prompt": "How many types of items are visible in the image?",
-                "notes": "Tests simple object counting."
-            }
+                "notes": "Tests simple object counting.",
+            },
         ]
 
         # --- 3. Execute Demonstrations ---
@@ -258,7 +272,9 @@ def main():
             print(f"TASK: {task['type']}")
             print(f"Notes: {task['notes']}")
 
-            response, duration = demo_assistant.run_gqa_prompt(encoded_image, task["prompt"])
+            response, duration = demo_assistant.run_gqa_prompt(
+                encoded_image, task["prompt"]
+            )
 
             total_duration += duration
 
@@ -267,19 +283,24 @@ def main():
             print(f"\n[Inference Time]: {duration:.2f} seconds")
 
         print("\n" + "=" * 80)
-        print(f"Demonstration Complete. Total generation time: {total_duration:.2f} seconds.")
+        print(
+            f"Demonstration Complete. Total generation time: {total_duration:.2f} seconds."
+        )
         print("=" * 80)
 
     except requests.exceptions.HTTPError as e:
         # This error is less likely now, but kept for robust failure handling
-        print(f"\nERROR: Failed to download sample image. Please check the URL or your network connection. Status: {e}")
+        print(
+            f"\nERROR: Failed to download sample image. Please check the URL or your network connection. Status: {e}"
+        )
     except FileNotFoundError as e:
         print(f"\nCRITICAL ERROR: {e}")
         print("Please ensure the image file exists at the specified path.")
     except Exception as e:
         print(f"\nAn error occurred during the demonstration: {e}")
         print(
-            "Please ensure you have all dependencies (torch, transformers, PIL, requests) installed and sufficient system RAM (16+ GB is recommended for the 2B model on CPU).")
+            "Please ensure you have all dependencies (torch, transformers, PIL, requests) installed and sufficient system RAM (16+ GB is recommended for the 2B model on CPU)."
+        )
 
 
 if __name__ == "__main__":

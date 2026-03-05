@@ -62,7 +62,7 @@ def setup_logging(log_path):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()]
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
     )
     return logging.getLogger("Ubuntu_Validator")
 
@@ -82,7 +82,11 @@ def run_validation():
     display_size = config["resize"].get("display_size", 800)
 
     # Calculate initial counts
-    all_files = [f for f in quarantine_dir.iterdir() if f.suffix.lower() in ('.png', '.jpg', '.jpeg')]
+    all_files = [
+        f
+        for f in quarantine_dir.iterdir()
+        if f.suffix.lower() in (".png", ".jpg", ".jpeg")
+    ]
     total_to_process = len(all_files)
 
     if total_to_process == 0:
@@ -99,7 +103,9 @@ def run_validation():
 
         # Header with Counter
         print("\n" + "=" * 60)
-        print(f" PROGRESS: {processed_this_session}/{total_to_process} ({remaining} remaining)")
+        print(
+            f" PROGRESS: {processed_this_session}/{total_to_process} ({remaining} remaining)"
+        )
         print(f" FILE:     {img_path.name}")
         print("=" * 60)
 
@@ -107,12 +113,14 @@ def run_validation():
         temp_preview = root_dir / f"temp_preview{img_path.suffix}"
         try:
             with Image.open(img_path) as img:
-                w_percent = (display_size / float(img.size[0]))
+                w_percent = display_size / float(img.size[0])
                 h_size = int((float(img.size[1]) * float(w_percent)))
-                img.resize((display_size, h_size), Image.Resampling.LANCZOS).save(temp_preview)
+                img.resize((display_size, h_size), Image.Resampling.LANCZOS).save(
+                    temp_preview
+                )
 
             # Managed Ubuntu Viewer
-            viewer_proc = subprocess.Popen(['eog', str(temp_preview)])
+            viewer_proc = subprocess.Popen(["eog", str(temp_preview)])
         except Exception as e:
             logger.error(f"Error displaying {img_path.name}: {e}")
             continue
@@ -133,7 +141,7 @@ def run_validation():
         if choice in label_menu:
             shutil.move(str(img_path), str(output_dir / img_path.name))
             logger.info(f"Relabeled: {img_path.name}")
-        elif choice == 'D':
+        elif choice == "D":
             os.remove(img_path)
             logger.warning(f"Deleted: {img_path.name}")
         else:

@@ -81,32 +81,39 @@ The original file by Dr. Satya Mallick resides at https://colab.research.google.
 # !pip install qwen-vl-utils  # Upgrade Qwen-VL utilities during Jupyter/Colab session
 # 2  Imports
 # ── Standard library ────────────────────────────────────────────
-import os          # File‑system helpers (paths, env vars, etc.)
-import random      # Lightweight randomness (e.g., sample prompts)
-import textwrap    # Nicely format long strings for display
-import io          # In‑memory byte streams (e.g., image buffers)
-import requests    # Simple HTTP requests for downloading assets
+import os  # File‑system helpers (paths, env vars, etc.)
+import random  # Lightweight randomness (e.g., sample prompts)
+import textwrap  # Nicely format long strings for display
+import io  # In‑memory byte streams (e.g., image buffers)
+import requests  # Simple HTTP requests for downloading assets
 import argparse
 import configparser
 import time
+
 # ── Numerical computing ─────────────────────────────────────────
-import numpy as np                      # Core array maths (fast, vectorized operations)
+import numpy as np  # Core array maths (fast, vectorized operations)
+
 # ── Deep‑learning stack ─────────────────────────────────────────
 import torch  # Tensor library + GPU acceleration
 from transformers import (
     Qwen2_5_VLForConditionalGeneration,  # Multimodal LLM (image+text)
-    AutoProcessor,                       # Paired tokenizer/feature‑extractor
+    AutoProcessor,  # Paired tokenizer/feature‑extractor
 )
+
 # ── Imaging & visualisation ─────────────────────────────────────
-from PIL import Image                   # Pillow: load/save/manipulate images
-import matplotlib.pyplot as plt         # Quick plots in notebooks
-import matplotlib.patches as patches    # Bounding‑box overlays, etc.
+from PIL import Image  # Pillow: load/save/manipulate images
+import matplotlib.pyplot as plt  # Quick plots in notebooks
+import matplotlib.patches as patches  # Bounding‑box overlays, etc.
+
 # ── Project‑specific helpers ────────────────────────────────────
 from qwen_vl_utils import process_vision_info  # Post‑process Qwen outputs
+
 # ── Notebook conveniences ──────────────────────────────────────
 # import IPython.display as ipd         # Inline display (images, audio, HTML)
 
 APP_NAME = "caption_image"
+
+
 # helper function to process command line and configuration file
 def read_config_defaults(config_file_name):
     """
@@ -129,7 +136,7 @@ def read_config_defaults(config_file_name):
         "print_caption": False,
         "print_prompt": False,
         "measure_performance": False,
-        "message_prompt": "Describe this image."
+        "message_prompt": "Describe this image.",
     }
 
     if os.path.exists(config_file_name):
@@ -142,22 +149,35 @@ def read_config_defaults(config_file_name):
                 defaults["model_name"] = config["Settings"]["model_name"]
 
             # Read boolean values safely
-            for key in ["display_input", "display_output", "print_ids", "print_caption", "print_prompt", "measure_performance"]:
+            for key in [
+                "display_input",
+                "display_output",
+                "print_ids",
+                "print_caption",
+                "print_prompt",
+                "measure_performance",
+            ]:
                 try:
                     if key in config["Settings"]:
                         defaults[key] = config.getboolean("Settings", key)
                 except ValueError as e:
-                    print(f"Warning: Invalid boolean value for '{key}' in config file. Using hardcoded default. Error: {e}")
+                    print(
+                        f"Warning: Invalid boolean value for '{key}' in config file. Using hardcoded default. Error: {e}"
+                    )
 
         else:
-            print(f"Warning: No '[Settings]' section found in '{config_file_name}'. Using hardcoded defaults.")
+            print(
+                f"Warning: No '[Settings]' section found in '{config_file_name}'. Using hardcoded defaults."
+            )
     else:
-        print(f"Warning: Configuration file '{config_file_name}' not found. Using hardcoded defaults.")
+        print(
+            f"Warning: Configuration file '{config_file_name}' not found. Using hardcoded defaults."
+        )
 
     return defaults
 
-def caption_image():
 
+def caption_image():
     """
     1. Create the parser to handle command-line arguments
         Main function to parse arguments and run the image captioning process.
@@ -175,7 +195,7 @@ def caption_image():
         type=str,
         default=f"{APP_NAME}.ini",
         help="Optional path to a configuration file to load default settings from "
-             f"(default: '{APP_NAME}.ini')."
+        f"(default: '{APP_NAME}.ini').",
     )
 
     # Parse arguments specifically for the config file first
@@ -204,7 +224,7 @@ def caption_image():
         type=str,
         default=f"{APP_NAME}.ini",
         help="Optional path to a configuration file to load default settings from "
-             f"(default: '{APP_NAME}.ini')."
+        f"(default: '{APP_NAME}.ini').",
     )
 
     parser.add_argument(
@@ -212,7 +232,7 @@ def caption_image():
         type=str,
         default=config_defaults["image_path"],
         help="Path to the input image file (e.g., '../images/sample.jpg')."
-             f" Defaults to value in {APP_NAME}.ini or is required if not present."
+        f" Defaults to value in {APP_NAME}.ini or is required if not present.",
     )
 
     parser.add_argument(
@@ -220,47 +240,47 @@ def caption_image():
         type=str,
         default=config_defaults["model_name"],
         help="Name of the Hugging Face model to use. "
-             "Defaults to value in {APP_NAME}.ini or a hardcoded default."
+        "Defaults to value in {APP_NAME}.ini or a hardcoded default.",
     )
 
     # to display or not to display that is the question
     # A boolean type can be used here for explicit true/false values
     parser.add_argument(
         "--display_input",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["display_input"],
-        help="Display the input image using a graphical window (default: True)."
+        help="Display the input image using a graphical window (default: True).",
     )
     parser.add_argument(
         "--display_output",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["display_output"],
-        help="Display the output image using a graphical window (default: True)."
+        help="Display the output image using a graphical window (default: True).",
     )
     parser.add_argument(
         "--print_ids",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["print_ids"],
-        help="Print the ids in the console window (default: True)."
+        help="Print the ids in the console window (default: True).",
     )
     parser.add_argument(
         "--print_caption",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["print_caption"],
-        help="Print the caption in the console window (default: True)."
+        help="Print the caption in the console window (default: True).",
     )
     parser.add_argument(
         "--print_prompt",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["print_prompt"],
-        help="Print the prompt message in the console window (default: True)."
+        help="Print the prompt message in the console window (default: True).",
     )
 
     parser.add_argument(
         "--measure_performance",
-        type=lambda x: (x.lower() in ['true', '1', 't', 'y', 'yes']),
+        type=lambda x: (x.lower() in ["true", "1", "t", "y", "yes"]),
         default=config_defaults["measure_performance"],
-        help="Measure and print the inference speed of the model (default: False)."
+        help="Measure and print the inference speed of the model (default: False).",
     )
 
     parser.add_argument(
@@ -268,7 +288,7 @@ def caption_image():
         type=str,
         default=config_defaults["message_prompt"],
         help="Text in message template to processor. "
-             f"Defaults to value in {APP_NAME}.ini or a hardcoded default."
+        f"Defaults to value in {APP_NAME}.ini or a hardcoded default.",
     )
 
     # 4. Parse all arguments again, this time including potential overrides
@@ -287,9 +307,11 @@ def caption_image():
 
     # 5. Check if we have a valid image path from either source
     if not image_path:
-        print("Error: No image path provided. Please specify --image_path "
-              "on the command line or in your configuration file.")
-        parser.print_help() # Print help if an image path is missing and required
+        print(
+            "Error: No image path provided. Please specify --image_path "
+            "on the command line or in your configuration file."
+        )
+        parser.print_help()  # Print help if an image path is missing and required
         return
     if not os.path.exists(image_path):
         print(f"Error: The image file '{image_path}' was not found.")
@@ -306,8 +328,8 @@ def caption_image():
 
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         model_id,
-        torch_dtype="auto",     # automatically uses FP16 on GPU, FP32 on CPU
-        device_map="auto"       # dispatches layers to the available device(s)
+        torch_dtype="auto",  # automatically uses FP16 on GPU, FP32 on CPU
+        device_map="auto",  # dispatches layers to the available device(s)
     )
     processor = AutoProcessor.from_pretrained(model_id)
 
@@ -339,7 +361,7 @@ def caption_image():
             "role": "user",
             "content": [
                 {"type": "image", "image": image_specified},
-                {"type": "text",  "text": f"{message_prompt}"}
+                {"type": "text", "text": f"{message_prompt}"},
             ],
         }
     ]
@@ -370,9 +392,7 @@ def caption_image():
     #                                (e.g. "<|im_start|>assistant\n"), which tells the
     #                                model where its reply should begin.
     text_prompt = processor.apply_chat_template(
-        msgs,
-        tokenize=False,
-        add_generation_prompt=True
+        msgs, tokenize=False, add_generation_prompt=True
     )
 
     # For sanity-checking: print the raw prompt string that will be fed to the model
@@ -417,24 +437,26 @@ def caption_image():
 
     # ── Pack text + vision into model-ready tensors ──────────────────────────────
     inputs = processor(
-        text=[text_prompt],             # 1-element batch containing the chat prompt string
-        images=image_inputs,            # list of raw PIL images (pre-processed inside processor)
-        videos=video_inputs,            # list of raw video clips (if any)
-        padding=True,                   # pad sequences so text/vision tokens line up in a batch
-        return_tensors="pt",            # return a dict of PyTorch tensors (input_ids, pixel_values, …)
-    ).to(model.device)                  # move every tensor—text and vision—to the model’s GPU/CPU
+        text=[text_prompt],  # 1-element batch containing the chat prompt string
+        images=image_inputs,  # list of raw PIL images (pre-processed inside processor)
+        videos=video_inputs,  # list of raw video clips (if any)
+        padding=True,  # pad sequences so text/vision tokens line up in a batch
+        return_tensors="pt",  # return a dict of PyTorch tensors (input_ids, pixel_values, …)
+    ).to(
+        model.device
+    )  # move every tensor—text and vision—to the model’s GPU/CPU
 
     # ── Run inference (no gradients, pure generation) ───────────────────────────
     start_time = time.time()
-    with torch.no_grad():               # disable autograd to save memory
-        generated_ids = model.generate( # autoregressive decoding
-            **inputs,                   # unpack dict into generate(...)
-            max_new_tokens=254          # cap the response at 64 tokens
+    with torch.no_grad():  # disable autograd to save memory
+        generated_ids = model.generate(  # autoregressive decoding
+            **inputs,  # unpack dict into generate(...)
+            max_new_tokens=254,  # cap the response at 64 tokens
         )
     end_time = time.time()
     generation_time = end_time - start_time
     num_generated_tokens = generated_ids.shape[1] - inputs.input_ids.shape[1]
-    if (print_ids):
+    if print_ids:
         print(inputs.input_ids[0])
         print(generated_ids)
 
@@ -443,8 +465,7 @@ def caption_image():
 
     # Extract the newly generated tokens (skip the prompt length)
     caption = processor.batch_decode(
-        generated_ids[:, inputs.input_ids.shape[-1]:],
-        skip_special_tokens=True
+        generated_ids[:, inputs.input_ids.shape[-1] :], skip_special_tokens=True
     )[0]
 
     # Display the image
@@ -467,6 +488,7 @@ def caption_image():
         if generation_time > 0:
             tokens_per_second = num_generated_tokens / generation_time
             print(f"Tokens per second: {tokens_per_second:.2f}")
+
 
 if __name__ == "__main__":
     caption_image()

@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+ecommerce_agent.py
+"""
 import torch
 import os
 import argparse
@@ -5,7 +9,9 @@ from PIL import Image
 from transformers import Qwen3VLForConditionalGeneration, AutoProcessor
 
 # --- Configuration Constants ---
-MODEL_ID: str = "Qwen/Qwen3-VL-2B-Instruct" # Using the publicly available Qwen3-VL-2B-Instruct model
+MODEL_ID: str = (
+    "Qwen/Qwen3-VL-2B-Instruct"  # Using the publicly available Qwen3-VL-2B-Instruct model
+)
 # NOTE: device_map="auto" is recommended to utilize GPU if available.
 # Set to "cpu" if you must run on CPU (requires substantial RAM).
 DEVICE_MAP: str = "auto"
@@ -19,7 +25,9 @@ DEVICE_MAP: str = "auto"
 DUMMY_IMAGE_PATH: str = "./red_canvas_backpack.jpg"
 
 # The user's request contains constraints that conflict with the image attributes
-USER_QUERY: str = "I need to find this bag, but make sure it is **black** and the material should be **leather**."
+USER_QUERY: str = (
+    "I need to find this bag, but make sure it is **black** and the material should be **leather**."
+)
 
 # The instruction set is crafted to force the model to output the required thinking trace
 SYSTEM_INSTRUCTIONS: str = (

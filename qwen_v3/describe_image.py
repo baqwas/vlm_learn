@@ -38,10 +38,14 @@ MODEL_ID: str = "Qwen/Qwen3-VL-2B-Instruct"
 DEVICE: str = "cpu"
 
 # FIX APPLIED: Changed to a known-working Qwen-VL example image URL (demo.jpeg)
-IMAGE_URL: str = "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg"
+IMAGE_URL: str = (
+    "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg"
+)
 
 
-def load_model_and_processor(model_id: str, device: str) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
+def load_model_and_processor(
+    model_id: str, device: str
+) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
     """
     Loads the Qwen3-VL model using AutoModelForImageTextToText for CPU inference.
 
@@ -63,9 +67,11 @@ def load_model_and_processor(model_id: str, device: str) -> Tuple[AutoModelForIm
         device_map=device,
         dtype=torch.float32,
         trust_remote_code=True,
-        token=hf_token
+        token=hf_token,
     )
-    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, token=hf_token)
+    processor = AutoProcessor.from_pretrained(
+        model_id, trust_remote_code=True, token=hf_token
+    )
     print("✅ Model loaded successfully.")
     return model, processor
 
@@ -85,9 +91,11 @@ def prepare_multimodal_input(image_url: str, prompt_text: str) -> List[Dict[str,
     # Download the image content and open it with PIL
     response = requests.get(image_url, stream=True)
     if response.status_code != 200:
-        raise ConnectionError(f"Failed to download image from {image_url}. Status code: {response.status_code}")
+        raise ConnectionError(
+            f"Failed to download image from {image_url}. Status code: {response.status_code}"
+        )
 
-    image = Image.open(io.BytesIO(response.content)).convert('RGB')
+    image = Image.open(io.BytesIO(response.content)).convert("RGB")
     print("✅ Image downloaded and prepared.")
 
     # Define the user's conversation message with the PIL Image object
@@ -96,7 +104,7 @@ def prepare_multimodal_input(image_url: str, prompt_text: str) -> List[Dict[str,
             "role": "user",
             "content": [
                 {"type": "image", "image": image},  # Pass the PIL Image object
-                {"type": "text", "text": prompt_text}
+                {"type": "text", "text": prompt_text},
             ],
         }
     ]
@@ -104,8 +112,11 @@ def prepare_multimodal_input(image_url: str, prompt_text: str) -> List[Dict[str,
     return messages
 
 
-def generate_response(model: AutoModelForImageTextToText, processor: AutoProcessor,
-                      messages: List[Dict[str, Any]]) -> str:
+def generate_response(
+    model: AutoModelForImageTextToText,
+    processor: AutoProcessor,
+    messages: List[Dict[str, Any]],
+) -> str:
     """
     Processes the input and generates a response from the Qwen3-VL model.
 
@@ -123,7 +134,7 @@ def generate_response(model: AutoModelForImageTextToText, processor: AutoProcess
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     # Move inputs to the designated device (in this case, CPU)
@@ -141,7 +152,9 @@ def generate_response(model: AutoModelForImageTextToText, processor: AutoProcess
     )
 
     # Decode the generated IDs, skipping the input prompt tokens
-    response = processor.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    response = processor.decode(
+        outputs[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True
+    )
 
     return response
 

@@ -14,24 +14,20 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
     "Qwen/Qwen2.5-VL-7B-Instruct",
     torch_dtype=torch.float16,
     device_map="auto",
-    attn_implementation="sdpa"
+    attn_implementation="sdpa",
 )
 processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")
 messages = [
     {
-        "role":"user",
-        "content":[
+        "role": "user",
+        "content": [
             {
-                "type":"image",
-                "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/pipeline-cat-chonk.jpeg"
+                "type": "image",
+                "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/pipeline-cat-chonk.jpeg",
             },
-            {
-                "type":"text",
-                "text":"Describe this image."
-            }
-        ]
+            {"type": "text", "text": "Describe this image."},
+        ],
     }
-
 ]
 
 inputs = processor.apply_chat_template(
@@ -39,7 +35,7 @@ inputs = processor.apply_chat_template(
     add_generation_prompt=True,
     tokenize=True,
     return_dict=True,
-    return_tensors="pt"
+    return_tensors="pt",
 ).to("cpu")
 
 generated_ids = model.generate(**inputs, max_new_tokens=128)
@@ -47,8 +43,6 @@ generated_ids_trimmed = [
     out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
 ]
 output_text = processor.batch_decode(
-    generated_ids_trimmed,
-    skip_special_tokens=True,
-    clean_up_tokenization_spaces=False
+    generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
 )
 print(output_text)

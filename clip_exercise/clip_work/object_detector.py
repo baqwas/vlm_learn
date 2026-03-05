@@ -62,7 +62,8 @@ import re
 from PIL import Image, ImageDraw
 from pathlib import Path
 import torch
-#let the model tell the code what it is, rather than trying to find a hardcoded reference that doesn't exist in the library yet
+
+# let the model tell the code what it is, rather than trying to find a hardcoded reference that doesn't exist in the library yet
 from transformers import AutoModelForVision2Seq, AutoProcessor
 from qwen_vl_utils import process_vision_info
 
@@ -73,7 +74,7 @@ def setup_logging(log_path):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()]
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
     )
     return logging.getLogger("Qwen_Spatial_Audit")
 
@@ -112,14 +113,18 @@ def run_detection():
             vlm_id,
             trust_remote_code=True,
             torch_dtype=torch.bfloat16,
-            device_map="auto"
+            device_map="auto",
         )
     except Exception as e:
         logger.error(f"Model Load Error ({vlm_id}): {e}")
         return
 
     # 4. DETECTION LOOP
-    images = [f for f in os.listdir(input_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    images = [
+        f
+        for f in os.listdir(input_dir)
+        if f.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
 
     for img_name in images:
         img_path = input_dir / img_name
@@ -130,14 +135,19 @@ def run_detection():
                 "role": "user",
                 "content": [
                     {"type": "image", "image": str(img_path)},
-                    {"type": "text", "text": f"Find {targets}. Return JSON format with 'bbox_2d' and 'label'."}
+                    {
+                        "type": "text",
+                        "text": f"Find {targets}. Return JSON format with 'bbox_2d' and 'label'.",
+                    },
                 ],
             }
         ]
 
         try:
             # Process vision info and prompt template
-            text_prompt = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            text_prompt = processor.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
             image_inputs, video_inputs = process_vision_info(messages)
 
             inputs = processor(
@@ -145,14 +155,13 @@ def run_detection():
                 images=image_inputs,
                 videos=video_inputs,
                 padding=True,
-                return_tensors="pt"
+                return_tensors="pt",
             ).to(device)
 
             # Generate Response
             generated_ids = model.generate(**inputs, max_new_tokens=1024)
             response = processor.batch_decode(
-                generated_ids[:, inputs.input_ids.shape[1]:],
-                skip_special_tokens=True
+                generated_ids[:, inputs.input_ids.shape[1] :], skip_special_tokens=True
             )[0]
 
             logger.info(f"Model Inference for {img_name}: {response}")
@@ -164,10 +173,10 @@ def run_detection():
 
                 # Regex to find bounding boxes: [ymin, xmin, ymax, xmax]
                 # Qwen uses normalized coordinates (0-1000)
-                box_matches = re.finditer(r'\[(\d+,\s*\d+,\s*\d+,\s*\d+)\]', response)
+                box_matches = re.finditer(r"\[(\d+,\s*\d+,\s*\d+,\s*\d+)\]", response)
 
                 for match in box_matches:
-                    coords = [int(c) for c in match.group(1).split(',')]
+                    coords = [int(c) for c in match.group(1).split(",")]
                     ymin, xmin, ymax, xmax = coords
 
                     # Convert to pixel coordinates
@@ -177,7 +186,7 @@ def run_detection():
                     draw.rectangle(
                         [left, top, right, bottom],
                         outline=config["detection"].get("box_color", "lime"),
-                        width=config["detection"].get("thickness", 3)
+                        width=config["detection"].get("thickness", 3),
                     )
 
                 save_path = annotated_dir / f"annotated_{img_name}"

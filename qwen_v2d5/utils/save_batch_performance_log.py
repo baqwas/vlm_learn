@@ -10,12 +10,7 @@ def insert_log_data_into_mariadb(log_file_path):
     Reads a JSONL log file and inserts each record into a MariaDB table.
     """
     # 1. MariaDB Connection Details
-    db_config = {
-        'host': '',
-        'user': '',
-        'password': '',
-        'database': ''
-    }
+    db_config = {"host": "", "user": "", "password": "", "database": ""}
 
     try:
         # 2. Establish database connection
@@ -39,12 +34,12 @@ def insert_log_data_into_mariadb(log_file_path):
         # 4. Read the log file and insert records
         records_inserted = 0
         print(f"Reading log file: {log_file_path}")
-        with open(log_file_path, 'r') as log_file:
+        with open(log_file_path, "r") as log_file:
             # Skip the initial header lines
             for line in log_file:
-                if line.strip().startswith('---'):
+                if line.strip().startswith("---"):
                     continue
-                if line.strip().startswith('Timestamp:'):
+                if line.strip().startswith("Timestamp:"):
                     continue
                 if not line.strip():  # Skip empty lines
                     continue
@@ -60,7 +55,9 @@ def insert_log_data_into_mariadb(log_file_path):
                         record.get("response"),
                         record.get("generated_tokens"),
                         record.get("generation_time_seconds"),
-                        record.get("tokens_per_second", None)  # Handle potential missing key
+                        record.get(
+                            "tokens_per_second", None
+                        ),  # Handle potential missing key
                     )
 
                     # Execute the insert statement
@@ -88,7 +85,7 @@ def insert_log_data_into_mariadb(log_file_path):
 
     finally:
         # 6. Close the connection
-        if 'conn' in locals() and conn.is_connected():
+        if "conn" in locals() and conn.is_connected():
             cursor.close()
             conn.close()
             print("Database connection closed.")
@@ -96,7 +93,7 @@ def insert_log_data_into_mariadb(log_file_path):
 
 if __name__ == "__main__":
     # Define the path to your log file
-    log_file_name = ("../conversation/batch_performance_log")
+    log_file_name = "../conversation/batch_performance_log"
     script_dir = os.path.dirname(__file__)
     log_file_path = os.path.join(script_dir, log_file_name)
 

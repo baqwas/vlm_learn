@@ -36,7 +36,9 @@ def test_vlm_environment_integrity():
 
     # 2. Verify Compute Fabric (GPU/NPU)
     cuda_available = torch.cuda.is_available()
-    print(f"[🔥] CUDA Hardware Acceleration: {'Enabled' if cuda_available else 'Disabled'}")
+    print(
+        f"[🔥] CUDA Hardware Acceleration: {'Enabled' if cuda_available else 'Disabled'}"
+    )
 
     # 3. Path Validation
     root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

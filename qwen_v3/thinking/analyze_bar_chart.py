@@ -40,21 +40,24 @@ from typing import Union
 
 # --- Configuration for CPU-Only and Thinking Model ---
 # The smallest reasoning-enhanced model for complex multimodal tasks.
-MODEL_ID: str = 'Qwen/Qwen3-VL-2B-Thinking'
+MODEL_ID: str = "Qwen/Qwen3-VL-2B-Thinking"
 
 # Forces the model to load and run on the system's CPU/RAM.
-DEVICE: str = 'cpu'
+DEVICE: str = "cpu"
 
 # Use float32 for maximum CPU compatibility, which requires more RAM (approx. 8GB+).
 DTYPE = torch.float32
 
 # Path to the image file - the Apple Quarterly Revenue chart
-CHART_PATH: str = '../images/apple.png'
+CHART_PATH: str = "../images/apple.png"
 
 
 # --- Core Inference Function ---
 
-def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device: str, dtype: torch.dtype) -> None:
+
+def run_chart_analysis(
+    chart_path: str, chart_prompt: str, model_id: str, device: str, dtype: torch.dtype
+) -> None:
     """
     Loads the Qwen3-VL-Thinking model and performs a multimodal reasoning task
     on a bar chart using a CPU-only configuration.
@@ -68,7 +71,9 @@ def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device
     """
 
     if not os.path.exists(chart_path):
-        print(f"🚨 ERROR: Chart file not found at '{chart_path}'. Please generate the chart or adjust the path.")
+        print(
+            f"🚨 ERROR: Chart file not found at '{chart_path}'. Please generate the chart or adjust the path."
+        )
         return
 
     # 1. Load Image
@@ -86,10 +91,7 @@ def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device
         # device_map="auto" is recommended for multi-device, but for 'cpu'
         # it forces loading onto the CPU. trust_remote_code=True is essential.
         model = Qwen3VLForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype=dtype,
-            device_map=device,
-            trust_remote_code=True
+            model_id, torch_dtype=dtype, device_map=device, trust_remote_code=True
         )
         processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     except Exception as e:
@@ -104,8 +106,8 @@ def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device
             "role": "user",
             "content": [
                 {"type": "image", "image": chart_image},  # Visual Input
-                {"type": "text", "text": chart_prompt}  # Textual Query
-            ]
+                {"type": "text", "text": chart_prompt},  # Textual Query
+            ],
         }
     ]
 
@@ -115,13 +117,15 @@ def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     # Move inputs to the designated device (CPU)
     inputs = inputs.to(model.device)
 
-    print("\n⏳ Starting CPU inference. Expect a very long latency (minutes per token)...")
+    print(
+        "\n⏳ Starting CPU inference. Expect a very long latency (minutes per token)..."
+    )
 
     # 4. Inference: Generation of the Output
     try:
@@ -134,11 +138,13 @@ def run_chart_analysis(chart_path: str, chart_prompt: str, model_id: str, device
         )
     except Exception as e:
         print(f"\n🚨 FATAL INFERENCE ERROR: {e}")
-        print("Inference failed, likely due to out-of-memory or a very long timeout on CPU.")
+        print(
+            "Inference failed, likely due to out-of-memory or a very long timeout on CPU."
+        )
         return
 
     # Decode the generated IDs, skipping the input prompt tokens
-    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]):].tolist()
+    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]) :].tolist()
     response = processor.decode(generated_ids_trimmed, skip_special_tokens=True)
 
     # 5. Print Output
@@ -168,7 +174,7 @@ if __name__ == "__main__":
             chart_prompt=CHART_ANALYSIS_PROMPT,
             model_id=MODEL_ID,
             device=DEVICE,
-            dtype=DTYPE
+            dtype=DTYPE,
         )
     except Exception as e:
         print(f"\nAn unhandled error occurred during execution: {e}")

@@ -71,7 +71,7 @@ def setup_logging(log_path):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()]
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
     )
     return logging.getLogger("SigLIP_Quarantine")
 
@@ -107,10 +107,16 @@ def run_evaluation():
 
     results_tally = Counter()
     quarantine_count = 0
-    images = [f for f in os.listdir(image_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    images = [
+        f
+        for f in os.listdir(image_dir)
+        if f.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
     total_scanned = len(images)
 
-    logger.info(f"Starting eval on {total_scanned} images. Confidence Threshold: {threshold}")
+    logger.info(
+        f"Starting eval on {total_scanned} images. Confidence Threshold: {threshold}"
+    )
 
     # 4. INFERENCE & TRIAGE LOOP
     for img_name in images:
@@ -118,7 +124,13 @@ def run_evaluation():
 
         try:
             image = Image.open(img_path).convert("RGB")
-            inputs = processor(text=labels, images=image, padding="max_length", max_length=64, return_tensors="pt")
+            inputs = processor(
+                text=labels,
+                images=image,
+                padding="max_length",
+                max_length=64,
+                return_tensors="pt",
+            )
 
             with torch.no_grad():
                 outputs = model(**inputs)
@@ -129,7 +141,9 @@ def run_evaluation():
 
             if conf_val < threshold:
                 # ACTION: QUARANTINE
-                logger.warning(f"UNCERTAIN ({conf_val:.2f}): Moving {img_name} to quarantine.")
+                logger.warning(
+                    f"UNCERTAIN ({conf_val:.2f}): Moving {img_name} to quarantine."
+                )
                 shutil.move(str(img_path), str(quarantine_dir / img_name))
                 quarantine_count += 1
             else:

@@ -109,7 +109,9 @@ def run_turn(user_input: str, visual_input_type: str):
         print(f"   [INPUT IMAGE: {visual_input_type}]")
     print(f"   [INPUT TEXT: {user_input}]")
 
-    CHAT_HISTORY.append({"role": "user", "content": user_input, "visual": visual_input_type})
+    CHAT_HISTORY.append(
+        {"role": "user", "content": user_input, "visual": visual_input_type}
+    )
 
     # Generate the structured plan (Situational Awareness)
     agent_response = generate_reasoning_trace(CHAT_HISTORY, turn_count)
@@ -122,20 +124,22 @@ if __name__ == "__main__":
     # 1. Turn 1: Initial Spatial Observation and State Setup
     run_turn(
         user_input="Analyze this environment map (Image 1). Where is the Red Box and the Blue Cylinder?",
-        visual_input_type="Initial Map (Image 1)"
+        visual_input_type="Initial Map (Image 1)",
     )
 
     # 2. Turn 2: Viewpoint Change and Relative Spatial Reasoning
     run_turn(
         user_input="I moved two steps left and zoomed the camera. Now, where is the Blue Cylinder relative to the Red Box?",
-        visual_input_type="Zoomed View (Image 2)"
+        visual_input_type="Zoomed View (Image 2)",
     )
 
     # 3. Turn 3: Long-Context Memory Retrieval and Systematic Action
     run_turn(
         user_input="Now, forget the last move. Go back to the initial position and pick up the object that was next to the Red Box.",
-        visual_input_type=""  # No new image, requires memory recall
+        visual_input_type="",  # No new image, requires memory recall
     )
 
     print("\n" + "=" * 80)
-    print("DEMONSTRATION COMPLETE: The Qwen3-VL Thinking model maintains situational context across turns.")
+    print(
+        "DEMONSTRATION COMPLETE: The Qwen3-VL Thinking model maintains situational context across turns."
+    )

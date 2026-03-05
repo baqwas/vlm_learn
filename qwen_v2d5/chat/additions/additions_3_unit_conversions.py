@@ -1,4 +1,10 @@
+#!/usr/bin/env python3
+"""
+additions_3_unit_conversions.py
+"""
+
 from langchain_core.tools import tool
+
 
 @tool
 def convert_length_inches_to_cm(inches_length: int) -> int:
@@ -16,6 +22,7 @@ def convert_length_inches_to_cm(inches_length: int) -> int:
     """
     return round(inches_length * 2.54)
 
+
 @tool
 def convert_weight_cups_to_grams(cups_weight: float) -> int:
     """
@@ -29,6 +36,7 @@ def convert_weight_cups_to_grams(cups_weight: float) -> int:
     :rtype: int
     """
     return round(cups_weight * 250)
+
 
 @tool
 def convert_volume_cups_to_millilitres(cups_volume: float) -> int:

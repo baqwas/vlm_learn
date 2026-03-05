@@ -17,7 +17,8 @@ into a systematic, executable action plan.
 * License: MIT License
 * Copyright: (c) 2025 ParkCircus Productions
 """
-import time # Used to simulate the model's "thinking" time
+import time  # Used to simulate the model's "thinking" time
+
 
 def generate_agent_plan(visual_input_type: str, user_goal: str) -> str:
     """
@@ -34,7 +35,7 @@ def generate_agent_plan(visual_input_type: str, user_goal: str) -> str:
     print(f"Goal received: {user_goal}")
     print(f"Input type: {visual_input_type}")
     print("\nSimulating Qwen3-VL-Thinking's deep analysis...")
-    time.sleep(1.5) # A brief pause to simulate the computational cost of "Thinking"
+    time.sleep(1.5)  # A brief pause to simulate the computational cost of "Thinking"
 
     # The key to the Thinking model: Structured, multi-step output
     plan = f"""
@@ -63,6 +64,7 @@ STEP 3: ACTION & FORMATTING (Execution)
 [PLANNING COMPLETE: Ready for Tool Execution]
 """
     return plan.strip()
+
 
 # --- DEMONSTRATION EXAMPLES ---
 

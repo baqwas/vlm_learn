@@ -57,7 +57,9 @@ import tomllib
 from concurrent.futures import ProcessPoolExecutor
 
 # --- Setup Logging ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -93,13 +95,16 @@ class ImageValidator:
             return None
 
     def run_sweep(self, directory=None, step_override=None):
-        dir_path = directory or self.config['paths']['input_dir']
-        step = step_override or self.config['threshold']['step']
+        dir_path = directory or self.config["paths"]["input_dir"]
+        step = step_override or self.config["threshold"]["step"]
 
         # Discover files
-        valid_exts = ('.jpg', '.jpeg', '.png')
-        files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
-                 if f.lower().endswith(valid_exts)]
+        valid_exts = (".jpg", ".jpeg", ".png")
+        files = [
+            os.path.join(dir_path, f)
+            for f in os.listdir(dir_path)
+            if f.lower().endswith(valid_exts)
+        ]
 
         if not files:
             logger.error(f"No valid images found in {dir_path}")
@@ -119,17 +124,19 @@ class ImageValidator:
 
         # --- Threshold Sweep ---
         results = []
-        start = self.config['threshold']['start_threshold']
-        end = self.config['threshold']['end_threshold']
+        start = self.config["threshold"]["start_threshold"]
+        end = self.config["threshold"]["end_threshold"]
 
         for t in range(start, end + step, step):
             quarantined = sum(1 for s in scores if s < t)
             pass_rate = ((total - quarantined) / total) * 100
-            results.append({
-                "Threshold": t,
-                "Quarantined": quarantined,
-                "Pass Rate %": round(pass_rate, 2)
-            })
+            results.append(
+                {
+                    "Threshold": t,
+                    "Quarantined": quarantined,
+                    "Pass Rate %": round(pass_rate, 2),
+                }
+            )
 
         df = pd.DataFrame(results)
 

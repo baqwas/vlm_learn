@@ -25,7 +25,7 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
     model_path,
     torch_dtype=torch.bfloat16,
     attn_implementation="flash_attention_2",
-    device_map="auto"
+    device_map="auto",
 )
 processor = AutoProcessor.from_pretrained(model_path)
 
@@ -45,25 +45,27 @@ from decord import VideoReader, cpu
 
 def download_video(url, dest_path):
     response = requests.get(url, stream=True)
-    with open(dest_path, 'wb') as f:
+    with open(dest_path, "wb") as f:
         for chunk in response.iter_content(chunk_size=8096):
             f.write(chunk)
     print(f"Video downloaded to {dest_path}")
 
 
-def get_video_frames(video_path, num_frames=128, cache_dir='.cache'):
+def get_video_frames(video_path, num_frames=128, cache_dir=".cache"):
     os.makedirs(cache_dir, exist_ok=True)
 
-    video_hash = hashlib.md5(video_path.encode('utf-8')).hexdigest()
-    if video_path.startswith('http://') or video_path.startswith('https://'):
-        video_file_path = os.path.join(cache_dir, f'{video_hash}.mp4')
+    video_hash = hashlib.md5(video_path.encode("utf-8")).hexdigest()
+    if video_path.startswith("http://") or video_path.startswith("https://"):
+        video_file_path = os.path.join(cache_dir, f"{video_hash}.mp4")
         if not os.path.exists(video_file_path):
             download_video(video_path, video_file_path)
     else:
         video_file_path = video_path
 
-    frames_cache_file = os.path.join(cache_dir, f'{video_hash}_{num_frames}_frames.npy')
-    timestamps_cache_file = os.path.join(cache_dir, f'{video_hash}_{num_frames}_timestamps.npy')
+    frames_cache_file = os.path.join(cache_dir, f"{video_hash}_{num_frames}_frames.npy")
+    timestamps_cache_file = os.path.join(
+        cache_dir, f"{video_hash}_{num_frames}_timestamps.npy"
+    )
 
     if os.path.exists(frames_cache_file) and os.path.exists(timestamps_cache_file):
         frames = np.load(frames_cache_file)
@@ -90,7 +92,7 @@ def create_image_grid(images, num_columns=8):
     img_width, img_height = pil_images[0].size
     grid_width = num_columns * img_width
     grid_height = num_rows * img_height
-    grid_image = Image.new('RGB', (grid_width, grid_height))
+    grid_image = Image.new("RGB", (grid_width, grid_height))
 
     for idx, image in enumerate(pil_images):
         row_idx = idx // num_columns
@@ -100,30 +102,64 @@ def create_image_grid(images, num_columns=8):
 
     return grid_image
 
+
 """Inference function"""
 
-def inference(video_path, prompt, max_new_tokens=2048, total_pixels=20480 * 28 * 28, min_pixels=16 * 28 * 28):
+
+def inference(
+    video_path,
+    prompt,
+    max_new_tokens=2048,
+    total_pixels=20480 * 28 * 28,
+    min_pixels=16 * 28 * 28,
+):
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": [
+        {
+            "role": "user",
+            "content": [
                 {"type": "text", "text": prompt},
-                {"video": video_path, "total_pixels": total_pixels, "min_pixels": min_pixels},
-            ]
+                {
+                    "video": video_path,
+                    "total_pixels": total_pixels,
+                    "min_pixels": min_pixels,
+                },
+            ],
         },
     ]
-    text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    image_inputs, video_inputs, video_kwargs = process_vision_info([messages], return_video_kwargs=True)
-    fps_inputs = video_kwargs['fps']
+    text = processor.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+    image_inputs, video_inputs, video_kwargs = process_vision_info(
+        [messages], return_video_kwargs=True
+    )
+    fps_inputs = video_kwargs["fps"]
     print("video input:", video_inputs[0].shape)
     num_frames, _, resized_height, resized_width = video_inputs[0].shape
-    print("num of video tokens:", int(num_frames / 2 * resized_height / 28 * resized_width / 28))
-    inputs = processor(text=[text], images=image_inputs, videos=video_inputs, fps=fps_inputs, padding=True, return_tensors="pt")
-    inputs = inputs.to('cuda')
+    print(
+        "num of video tokens:",
+        int(num_frames / 2 * resized_height / 28 * resized_width / 28),
+    )
+    inputs = processor(
+        text=[text],
+        images=image_inputs,
+        videos=video_inputs,
+        fps=fps_inputs,
+        padding=True,
+        return_tensors="pt",
+    )
+    inputs = inputs.to("cuda")
 
     output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
-    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs.input_ids, output_ids)]
-    output_text = processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+    generated_ids = [
+        output_ids[len(input_ids) :]
+        for input_ids, output_ids in zip(inputs.input_ids, output_ids)
+    ]
+    output_text = processor.batch_decode(
+        generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
+    )
     return output_text[0]
+
 
 """Inference function with API using OpenAI SDK.
 
@@ -140,32 +176,30 @@ from IPython.display import Markdown, display
 def inference_with_api(
     video_path,
     prompt,
-    sys_prompt = "You are a helpful assistant.",
-    model_id = "qwen-vl-max-latest",
+    sys_prompt="You are a helpful assistant.",
+    model_id="qwen-vl-max-latest",
 ):
     client = OpenAI(
-        api_key = os.getenv('DASHSCOPE_API_KEY'),
-        base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        api_key=os.getenv("DASHSCOPE_API_KEY"),
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
     messages = [
-        {
-            "role": "system",
-            "content": [{"type":"text","text": sys_prompt}]
-        },
+        {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
         {
             "role": "user",
             "content": [
                 {"type": "video_url", "video_url": {"url": video_path}},
                 {"type": "text", "text": prompt},
-            ]
-        }
+            ],
+        },
     ]
     completion = client.chat.completions.create(
-        model = model_id,
-        messages = messages,
+        model=model_id,
+        messages=messages,
     )
     print(completion)
     return completion.choices[0].message.content
+
 
 """#### 1. Reading Text in Videos
 
@@ -262,18 +296,21 @@ from datetime import datetime
 
 
 def parse_json(response):
-    html = markdown.markdown(response, extensions=['fenced_code'])
-    soup = BeautifulSoup(html, 'html.parser')
-    json_text = soup.find('code').text
+    html = markdown.markdown(response, extensions=["fenced_code"])
+    soup = BeautifulSoup(html, "html.parser")
+    json_text = soup.find("code").text
 
     data = json.loads(json_text)
     return data
 
 
 def time_to_seconds(time_str):
-    time_obj = datetime.strptime(time_str, '%M:%S.%f')
-    total_seconds = time_obj.minute * 60 + time_obj.second + time_obj.microsecond / 1_000_000
+    time_obj = datetime.strptime(time_str, "%M:%S.%f")
+    total_seconds = (
+        time_obj.minute * 60 + time_obj.second + time_obj.microsecond / 1_000_000
+    )
     return total_seconds
+
 
 data = parse_json(response)
 

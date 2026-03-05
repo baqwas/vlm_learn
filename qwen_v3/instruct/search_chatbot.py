@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-#
+"""
+search_chatbot.py
+"""
 import torch
 import os
 import io
 import base64
-import argparse # New import for command-line arguments
+import argparse  # New import for command-line arguments
 from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
 from typing import List, Dict, Any, Tuple
@@ -14,7 +16,11 @@ MODEL_ID: str = "Qwen/Qwen3-VL-2B-Instruct"
 # Prefer CUDA if available, otherwise fall back to CPU
 DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
 # Use a reduced precision data type for speed on GPU
-DTYPE = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16 if torch.cuda.is_available() else torch.float32
+DTYPE = (
+    torch.bfloat16
+    if (torch.cuda.is_available() and torch.cuda.is_bf16_supported())
+    else torch.float16 if torch.cuda.is_available() else torch.float32
+)
 
 DEFAULT_MAX_NEW_TOKENS: int = 50
 DEFAULT_TEMPERATURE: float = 0.5
@@ -28,14 +34,21 @@ class QwenVLChatbotHelper:
     Real-Time Conversational Helper using Qwen3-VL 2B, optimized for low latency
     via GPU, quantization, and efficient data handling.
     """
-    def __init__(self, model_id: str = MODEL_ID, device: str = DEVICE, dtype: torch.dtype = DTYPE):
+
+    def __init__(
+        self, model_id: str = MODEL_ID, device: str = DEVICE, dtype: torch.dtype = DTYPE
+    ):
         self.model_id = model_id
         self.device = device
         self.dtype = dtype
-        self.model, self.processor = self._load_model_and_processor(model_id, device, dtype)
+        self.model, self.processor = self._load_model_and_processor(
+            model_id, device, dtype
+        )
         print(f"Model initialized on: {self.device} with dtype: {self.dtype}")
 
-    def _load_model_and_processor(self, model_id: str, device: str, dtype: torch.dtype) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
+    def _load_model_and_processor(
+        self, model_id: str, device: str, dtype: torch.dtype
+    ) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
         """Loads the Qwen3-VL model using quantization for efficiency."""
         print(f"Loading model **{model_id}** to **{device}** using {dtype}...")
         hf_token = os.environ.get("HF_TOKEN")
@@ -58,16 +71,18 @@ class QwenVLChatbotHelper:
             Adtype=dtype,
             trust_remote_code=True,
             quantization_config=quantization_config,
-            token=hf_token
+            token=hf_token,
         )
 
         # 3. Load Processor
-        processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, token=hf_token)
+        processor = AutoProcessor.from_pretrained(
+            model_id, trust_remote_code=True, token=hf_token
+        )
         print("✅ Model loaded successfully.")
         return model, processor
 
     @staticmethod
-    def encode_image_to_base64(image_path: str, format: str = 'JPEG') -> str:
+    def encode_image_to_base64(image_path: str, format: str = "JPEG") -> str:
         """
         Loads an image file from a local path and converts it to a Base64 string.
 
@@ -81,7 +96,7 @@ class QwenVLChatbotHelper:
         print(f"Encoding image from: {image_path}")
         try:
             # 1. Load the image from the file path
-            img = Image.open(image_path).convert('RGB')
+            img = Image.open(image_path).convert("RGB")
 
             # 2. Save the image to an in-memory buffer
             buffer = io.BytesIO()
@@ -89,7 +104,7 @@ class QwenVLChatbotHelper:
             img.save(buffer, format=format.upper())
 
             # 3. Encode the buffer content to Base64
-            base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            base64_string = base64.b64encode(buffer.getvalue()).decode("utf-8")
             print("✅ Image file successfully encoded to Base64.")
 
             return base64_string
@@ -100,24 +115,26 @@ class QwenVLChatbotHelper:
 
     def decode_base64_to_image(self, base64_string: str) -> Image.Image:
         """Decodes Base64 string into a PIL Image object."""
-        if ',' in base64_string:
-            base64_string = base64_string.split(',')[1]
+        if "," in base64_string:
+            base64_string = base64_string.split(",")[1]
 
         try:
             image_data = base64.b64decode(base64_string)
-            image = Image.open(io.BytesIO(image_data)).convert('RGB')
+            image = Image.open(io.BytesIO(image_data)).convert("RGB")
             return image
         except Exception as e:
             raise ValueError(f"Failed to decode Base64 string to image: {e}")
 
-    def _prepare_multimodal_input(self, image: Image.Image, prompt_text: str) -> List[Dict[str, Any]]:
+    def _prepare_multimodal_input(
+        self, image: Image.Image, prompt_text: str
+    ) -> List[Dict[str, Any]]:
         """Constructs the chat messages structure."""
         messages = [
             {
                 "role": "user",
                 "content": [
                     {"type": "image", "image": image},
-                    {"type": "text", "text": prompt_text}
+                    {"type": "text", "text": prompt_text},
                 ],
             }
         ]
@@ -128,7 +145,7 @@ class QwenVLChatbotHelper:
         messages: List[Dict[str, Any]],
         max_new_tokens: int,
         temperature: float,
-        top_p: float = DEFAULT_TOP_P
+        top_p: float = DEFAULT_TOP_P,
     ) -> str:
         """Processes input and generates a response."""
         inputs = self.processor.apply_chat_template(
@@ -136,7 +153,7 @@ class QwenVLChatbotHelper:
             tokenize=True,
             add_generation_prompt=True,
             return_dict=True,
-            return_tensors="pt"
+            return_tensors="pt",
         )
 
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
@@ -147,10 +164,12 @@ class QwenVLChatbotHelper:
             do_sample=True,
             temperature=temperature,
             top_p=top_p,
-            num_beams=1
+            num_beams=1,
         )
 
-        response = self.processor.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        response = self.processor.decode(
+            outputs[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True
+        )
         return response.strip()
 
     def get_realtime_response(
@@ -158,7 +177,7 @@ class QwenVLChatbotHelper:
         base64_string: str,
         prompt: str,
         max_new_tokens: int = DEFAULT_MAX_NEW_TOKENS,
-        temperature: float = DEFAULT_TEMPERATURE
+        temperature: float = DEFAULT_TEMPERATURE,
     ) -> str:
         """Processes Base64 image and prompt for real-time chat."""
         try:
@@ -170,11 +189,7 @@ class QwenVLChatbotHelper:
 
             # 3. Generate Response
             print(f"\n🚀 Starting generation with prompt: {prompt[:50]}...")
-            response = self._generate_response(
-                messages,
-                max_new_tokens,
-                temperature
-            )
+            response = self._generate_response(messages, max_new_tokens, temperature)
             return response
 
         except ValueError as ve:
@@ -192,7 +207,7 @@ if __name__ == "__main__":
         "--image_path",
         type=str,
         default=DEFAULT_IMAGE_PATH,
-        help=f"Path to the image file to be processed. Default: '{DEFAULT_IMAGE_PATH}' (Placeholder)"
+        help=f"Path to the image file to be processed. Default: '{DEFAULT_IMAGE_PATH}' (Placeholder)",
     )
     args = parser.parse_args()
 
@@ -202,23 +217,26 @@ if __name__ == "__main__":
         encoded_image = QwenVLChatbotHelper.encode_image_to_base64(args.image_path)
     except FileNotFoundError as fnfe:
         print(f"\nFATAL ERROR: {fnfe}")
-        print("Please provide a valid image file path using `--image_path <path>` or create a dummy file.")
+        print(
+            "Please provide a valid image file path using `--image_path <path>` or create a dummy file."
+        )
         exit(1)
     except Exception as e:
         print(f"\nFATAL ERROR during image encoding: {e}")
         exit(1)
-
 
     # --- Step 2: Initialize and Run Chatbot ---
     try:
         assistant = QwenVLChatbotHelper()
 
         print("\n--- Real-Time Chatbot Simulation ---")
-        print(f"Model: {MODEL_ID} | Device: {assistant.device} | Image Source: {args.image_path}")
+        print(
+            f"Model: {MODEL_ID} | Device: {assistant.device} | Image Source: {args.image_path}"
+        )
 
         while True:
             user_input = input("\nUser (Prompt): ")
-            if user_input.lower() in ['quit', 'exit']:
+            if user_input.lower() in ["quit", "exit"]:
                 break
 
             # The encoded image is passed in every turn.
@@ -226,7 +244,7 @@ if __name__ == "__main__":
                 base64_string=encoded_image,
                 prompt=user_input,
                 max_new_tokens=DEFAULT_MAX_NEW_TOKENS,
-                temperature=0.4
+                temperature=0.4,
             )
 
             print(f"\n🤖 Qwen3-VL: {response}")

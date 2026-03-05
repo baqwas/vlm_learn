@@ -26,10 +26,7 @@ import logging
 from pathlib import Path
 
 # --- LOGGING CONFIGURATION ---
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s: %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
 class GTValidator:
@@ -46,13 +43,13 @@ class GTValidator:
             return
 
         try:
-            with open(self.filename, 'r', encoding='utf-8') as f:
+            with open(self.filename, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             logging.error(f"Invalid JSON format in {self.filename}: {e}")
             return
 
-        dataset = data.get('dataset', [])
+        dataset = data.get("dataset", [])
         total_images = len(dataset)
         stats = {}
         issues = []
@@ -62,9 +59,9 @@ class GTValidator:
         print("=" * 60)
 
         for entry in dataset:
-            img_id = entry.get('image_id', 'Unknown')
-            cat = entry.get('category', 'Uncategorized')
-            bboxes = entry.get('bboxes', [])
+            img_id = entry.get("image_id", "Unknown")
+            cat = entry.get("category", "Uncategorized")
+            bboxes = entry.get("bboxes", [])
 
             # Track counts per category
             stats[cat] = stats.get(cat, 0) + 1
@@ -75,7 +72,7 @@ class GTValidator:
 
             # Check 2: Box Integrity [ymin, xmin, ymax, xmax]
             for i, box_wrapper in enumerate(bboxes):
-                box = box_wrapper.get('box_2d', [])
+                box = box_wrapper.get("box_2d", [])
 
                 if len(box) != 4:
                     issues.append(f"❌ [{img_id}] Box {i} has incorrect dimensions.")
@@ -89,7 +86,9 @@ class GTValidator:
 
                 # Check for out of bounds
                 if any(val < 0 or val > self.target_size for val in box):
-                    issues.append(f"❌ [{img_id}] Box {i} exceeds image boundaries (0-1024).")
+                    issues.append(
+                        f"❌ [{img_id}] Box {i} exceeds image boundaries (0-1024)."
+                    )
 
         self._print_report(total_images, stats, issues)
 

@@ -4,9 +4,12 @@ from google.genai import Client  # Import the Gemini Client
 # --- 1. SET PAGE CONFIGURATION AND TITLE ---
 st.set_page_config(page_title="Gemini AI Simple Query App", layout="centered")
 st.title("💡 Gemini AI Query App")
-st.markdown("Enter a question below and press **Generate** to get a response from `gemini-2.5-flash`.")
+st.markdown(
+    "Enter a question below and press **Generate** to get a response from `gemini-2.5-flash`."
+)
 
 # --- 2. INITIALIZE CLIENT (CACHED) ---
+
 
 # Use st.cache_resource to initialize the client once per session
 @st.cache_resource
@@ -17,7 +20,8 @@ def get_gemini_client():
     except Exception as e:
         # Display an error if the key is missing or invalid
         st.error(
-            f"Error initializing Gemini Client. Please check your GEMINI_API_KEY environment variable. Details: {e}")
+            f"Error initializing Gemini Client. Please check your GEMINI_API_KEY environment variable. Details: {e}"
+        )
         return None
 
 
@@ -29,14 +33,14 @@ if client:
     # Create an interactive text input field
     user_prompt = st.text_input(
         "Your Question:",
-        placeholder="Which religion's followers have caused the most deaths in South America"
+        placeholder="Which religion's followers have caused the most deaths in South America",
     )
 
     # Create an interactive button
     if st.button("Generate Response"):
         if user_prompt:
             # Display a spinner while waiting for the API response
-            with st.spinner('Generating content...'):
+            with st.spinner("Generating content..."):
                 try:
                     # Call the Gemini API with the user's input
                     response = client.models.generate_content(

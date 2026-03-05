@@ -48,6 +48,7 @@ import logging
 from PIL import Image
 from pathlib import Path
 
+
 def setup_logging(log_path):
     """Configures the logging utility to write to both file and console."""
     log_file = Path(log_path)
@@ -56,10 +57,7 @@ def setup_logging(log_path):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        handlers=[
-            logging.FileHandler(log_path),
-            logging.StreamHandler()
-        ]
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
     )
     return logging.getLogger("BatchResizer")
 
@@ -95,7 +93,7 @@ def batch_resize():
     processed_count = 0
     error_count = 0
 
-    valid_extensions = ('.png', '.jpg', '.jpeg', '.webp')
+    valid_extensions = (".png", ".jpg", ".jpeg", ".webp")
 
     for filename in os.listdir(input_dir):
         if filename.lower().endswith(valid_extensions):
@@ -105,10 +103,12 @@ def batch_resize():
             try:
                 with Image.open(img_path) as img:
                     # Maintain aspect ratio
-                    w_percent = (target_width / float(img.size[0]))
+                    w_percent = target_width / float(img.size[0])
                     target_height = int((float(img.size[1]) * float(w_percent)))
 
-                    resized_img = img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+                    resized_img = img.resize(
+                        (target_width, target_height), Image.Resampling.LANCZOS
+                    )
                     resized_img.save(save_path, optimize=True, quality=85)
 
                     logger.info(f"Successfully resized: {filename}")
@@ -118,7 +118,9 @@ def batch_resize():
                 logger.error(f"Failed to process {filename}: {str(e)}")
                 error_count += 1
 
-    logger.info(f"Batch Complete. Total Success: {processed_count}, Total Failures: {error_count}")
+    logger.info(
+        f"Batch Complete. Total Success: {processed_count}, Total Failures: {error_count}"
+    )
 
 
 if __name__ == "__main__":

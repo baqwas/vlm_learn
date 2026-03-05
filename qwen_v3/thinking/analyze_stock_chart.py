@@ -33,7 +33,9 @@ DTYPE = torch.float32
 LOCAL_IMAGE_PATH: str = "../images/stock_price_chart.png"
 
 # The specific prompt for the multimodal reasoning task
-CHART_PROMPT: str = "Analyze the stock performance chart. Which company had the best 6-month return, and what can be inferred from the shape of the lines regarding investor sentiment?"
+CHART_PROMPT: str = (
+    "Analyze the stock performance chart. Which company had the best 6-month return, and what can be inferred from the shape of the lines regarding investor sentiment?"
+)
 
 
 def load_local_image(file_path: str) -> Union[Image.Image, None]:
@@ -45,7 +47,7 @@ def load_local_image(file_path: str) -> Union[Image.Image, None]:
 
     try:
         # Use PIL's Image.open() for local file reading
-        image = Image.open(file_path).convert('RGB')
+        image = Image.open(file_path).convert("RGB")
         print("✅ Image loaded successfully.")
         return image
     except Exception as e:
@@ -57,20 +59,24 @@ def run_chart_reasoning(model_id: str, device: str, image_path: str, chart_promp
     """Loads the model, prepares the multimodal input, and performs inference."""
 
     # --- 1. Load Model and Processor ---
-    print(f"\n🧠 Loading model {model_id} to {device} (WARNING: Requires several GBs of RAM)...")
+    print(
+        f"\n🧠 Loading model {model_id} to {device} (WARNING: Requires several GBs of RAM)..."
+    )
     try:
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             model_id,
             device_map=device,
             # Note: dtype is set to float32 to enforce CPU compatibility
             dtype=DTYPE,
-            trust_remote_code=True
+            trust_remote_code=True,
         )
         processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
         print("✅ Model and Processor loaded successfully.")
     except Exception as e:
         print(f"\nFATAL MODEL LOADING ERROR: {e}")
-        print("This often happens when memory limits are exceeded or dependencies are missing.")
+        print(
+            "This often happens when memory limits are exceeded or dependencies are missing."
+        )
         return
 
     # --- 2. Prepare Multimodal Input (Image + Text) ---
@@ -84,7 +90,7 @@ def run_chart_reasoning(model_id: str, device: str, image_path: str, chart_promp
             "role": "user",
             "content": [
                 {"type": "image", "image": image},  # The image object
-                {"type": "text", "text": chart_prompt}, # The prompt
+                {"type": "text", "text": chart_prompt},  # The prompt
             ],
         }
     ]
@@ -95,7 +101,7 @@ def run_chart_reasoning(model_id: str, device: str, image_path: str, chart_promp
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     # Move inputs to the designated device (CPU)
@@ -109,7 +115,7 @@ def run_chart_reasoning(model_id: str, device: str, image_path: str, chart_promp
             **inputs,
             max_new_tokens=512,
             do_sample=False,  # Prefer deterministic, reasoned output
-            temperature=0.01, # Low temperature for logical precision
+            temperature=0.01,  # Low temperature for logical precision
         )
     except Exception as e:
         print(f"\nFATAL INFERENCE ERROR: {e}")
@@ -117,7 +123,7 @@ def run_chart_reasoning(model_id: str, device: str, image_path: str, chart_promp
         return
 
     # Decode the generated IDs, skipping the input prompt tokens
-    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]):].tolist()
+    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]) :].tolist()
     response = processor.decode(generated_ids_trimmed, skip_special_tokens=True)
 
     # --- 4. Print Output ---

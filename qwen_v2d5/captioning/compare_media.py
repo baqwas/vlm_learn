@@ -81,10 +81,7 @@ For practical, usable performance,
 a dedicated GPU with at least 8GB of VRAM (for the 3B model) is the minimum recommended hardware.
 """
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-    model_id,
-    device_map="auto",
-    torch_dtype="auto",
-    trust_remote_code=True
+    model_id, device_map="auto", torch_dtype="auto", trust_remote_code=True
 )
 processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
@@ -123,8 +120,8 @@ messages = [
         "content": [
             {"type": "image", "image": image1},  # Pass the PIL Image object directly
             {"type": "image", "image": image2},
-            {"type": "text", "text": query}
-        ]
+            {"type": "text", "text": query},
+        ],
     }
 ]
 
@@ -138,8 +135,8 @@ text = processor.apply_chat_template(
 )
 # Step 2: Pass the text string and the image object to the processor
 inputs = processor(
-    text=text,            # Pass the formatted text string
-    images=[image1, image2],         # Pass the PIL Image object here image1,
+    text=text,  # Pass the formatted text string
+    images=[image1, image2],  # Pass the PIL Image object here image1,
     return_tensors="pt",
 ).to(model.device)
 
@@ -156,7 +153,7 @@ generated_ids = model.generate(
 # 7. Decode the response
 decoded_output = processor.batch_decode(
     # generated_ids[:, inputs.shape[1]:],
-    generated_ids[:, inputs["input_ids"].shape[1]:],
+    generated_ids[:, inputs["input_ids"].shape[1] :],
     skip_special_tokens=True,
 )
 

@@ -26,7 +26,7 @@ pipe: ImageTextToTextPipeline = pipeline(
     task="image-text-to-text",
     model="Qwen/Qwen2.5-VL-7B-Instruct",
     device=0,
-    torch_dtype=torch.bfloat16
+    torch_dtype=torch.bfloat16,
 )
 
 """
@@ -42,8 +42,8 @@ messages = [
                 "type": "image",
                 "url": "https://bezaman.parkcircus.org/examples/demo.jpg",
             },
-            { "type": "text", "text": "Describe this image."},
-        ]
+            {"type": "text", "text": "Describe this image."},
+        ],
     }
 ]
 
@@ -53,9 +53,5 @@ The `pipe` function processes the input messages and generates a response.
 The `max_new_tokens` parameter controls the maximum number of tokens to generate in the response.
 The pipeline handles all the processing, and the output will be a dictionary containing the generated text response.
 """
-completion_code = pipe(
-    text=messages,
-    max_new_tokens=20,
-    return_full_text=False
-)
-print(completion_code[0]['generated_text'])
+completion_code = pipe(text=messages, max_new_tokens=20, return_full_text=False)
+print(completion_code[0]["generated_text"])

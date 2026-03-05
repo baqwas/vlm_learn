@@ -40,8 +40,7 @@ from pathlib import Path
 
 # --- LOGGING CONFIGURATION ---
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
@@ -53,13 +52,15 @@ class BBoxLabeler:
         self.output_file = Path(output_file)
         self.dataset = self._load_json()
         # Track already labeled images to allow resumption of sessions
-        self.processed_files = {item['image_id'] for item in self.dataset.get('dataset', [])}
+        self.processed_files = {
+            item["image_id"] for item in self.dataset.get("dataset", [])
+        }
 
     def _load_json(self):
         """Loads existing ground truth data or initializes new structure."""
         if self.output_file.exists():
             try:
-                with open(self.output_file, 'r', encoding='utf-8') as f:
+                with open(self.output_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except (json.JSONDecodeError, IOError) as e:
                 logging.error(f"Failed to load {self.output_file}: {e}")
@@ -69,7 +70,7 @@ class BBoxLabeler:
     def _save_json(self):
         """Persists dataset to disk in a human-readable JSON format."""
         try:
-            with open(self.output_file, 'w', encoding='utf-8') as f:
+            with open(self.output_file, "w", encoding="utf-8") as f:
                 json.dump(self.dataset, f, indent=4)
         except IOError as e:
             logging.error(f"Critical Error: Could not save data to disk! {e}")
@@ -129,7 +130,9 @@ class BBoxLabeler:
 
             while True:
                 # selectROI returns [xmin, ymin, width, height]
-                rect = cv2.selectROI(window_title, canvas, fromCenter=False, showCrosshair=True)
+                rect = cv2.selectROI(
+                    window_title, canvas, fromCenter=False, showCrosshair=True
+                )
 
                 x, y, w, h = rect
                 if w > 0 and h > 0:
@@ -143,24 +146,28 @@ class BBoxLabeler:
 
                 # Wait for user keypress
                 key = cv2.waitKey(0) & 0xFF
-                if key == ord('n'):  # Next image
+                if key == ord("n"):  # Next image
                     break
-                elif key == ord('c'):  # Clear image
+                elif key == ord("c"):  # Clear image
                     canvas = img.copy()
                     current_bboxes = []
                     logging.info("Current image cleared.")
-                elif key == ord('q'):  # Quit session
+                elif key == ord("q"):  # Quit session
                     logging.info("Saving progress and exiting...")
                     cv2.destroyAllWindows()
                     return
 
             # Store the data for this image
-            self.dataset['dataset'].append({
-                "image_id": img_path.name,
-                "category": category,
-                "gt_count": len(current_bboxes),
-                "bboxes": [{"label": "object", "box_2d": b} for b in current_bboxes]
-            })
+            self.dataset["dataset"].append(
+                {
+                    "image_id": img_path.name,
+                    "category": category,
+                    "gt_count": len(current_bboxes),
+                    "bboxes": [
+                        {"label": "object", "box_2d": b} for b in current_bboxes
+                    ],
+                }
+            )
             self.processed_files.add(img_path.name)
             self._save_json()
 
@@ -173,7 +180,6 @@ class BBoxLabeler:
 if __name__ == "__main__":
     # Parameters can be adjusted if your folder structure changes
     labeler = BBoxLabeler(
-        base_dir="../images/benchmark",
-        output_file="ground_truth.json"
+        base_dir="../images/benchmark", output_file="ground_truth.json"
     )
     labeler.start_session()

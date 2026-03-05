@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+check_key.py
+"""
 import os
 from dotenv import load_dotenv
 

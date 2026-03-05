@@ -42,7 +42,9 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 
-def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str = "stock_price_chart.png"):
+def generate_stock_chart(
+    tickers: list, period_months: int = 6, output_file: str = "stock_price_chart.png"
+):
     """
     Downloads stock data for the given tickers and generates a line chart
     of their adjusted closing prices.
@@ -55,25 +57,27 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
     end_date = datetime.now()
     start_date = end_date - relativedelta(months=period_months)
 
-    ticker_list_str = ', '.join(tickers)
+    ticker_list_str = ", ".join(tickers)
     print(
-        f"Downloading data for: {ticker_list_str} from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}...")
+        f"Downloading data for: {ticker_list_str} from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}..."
+    )
 
     try:
         # Download the data
         # auto_adjust=True sets the prices to the adjusted close automatically
         data = yf.download(
             tickers,
-            start=start_date.strftime('%Y-%m-%d'),
-            end=end_date.strftime('%Y-%m-%d'),
+            start=start_date.strftime("%Y-%m-%d"),
+            end=end_date.strftime("%Y-%m-%d"),
             auto_adjust=True,
-            progress=False
+            progress=False,
         )
 
         # --- ROBUSTNESS CHECK 1: Is the DataFrame empty? ---
         if data.empty:
             print(
-                "\n❌ Error: yfinance returned an empty dataset. This usually indicates a problem with your internet connection or the Yahoo Finance API.")
+                "\n❌ Error: yfinance returned an empty dataset. This usually indicates a problem with your internet connection or the Yahoo Finance API."
+            )
             return
 
         # For multiple tickers, yfinance returns a multi-index DataFrame,
@@ -81,15 +85,17 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
         # If auto_adjust=True is used (as in this script), we extract 'Close' instead of 'Adj Close'
         # as the 'Adj Close' column is dropped/merged into 'Close'.
         # However, for consistency, we try 'Adj Close' and fall back to 'Close' if it fails.
-        if 'Adj Close' in data.columns:
-            close_prices = data['Adj Close']
-        elif 'Close' in data.columns.get_level_values(0):
-            close_prices = data['Close']
-        elif 'Close' in data.columns:
+        if "Adj Close" in data.columns:
+            close_prices = data["Adj Close"]
+        elif "Close" in data.columns.get_level_values(0):
+            close_prices = data["Close"]
+        elif "Close" in data.columns:
             # This handles the case where only one ticker is downloaded (no multi-index)
-            close_prices = data['Close']
+            close_prices = data["Close"]
         else:
-            print("\n❌ Error: Could not find 'Adj Close' or 'Close' price columns in the downloaded data structure.")
+            print(
+                "\n❌ Error: Could not find 'Adj Close' or 'Close' price columns in the downloaded data structure."
+            )
             return
 
     except Exception as e:
@@ -104,7 +110,8 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
 
     if not successful_tickers:
         print(
-            "\n❌ Error: Although data was downloaded, no valid price entries were found for any stock. Cannot generate chart.")
+            "\n❌ Error: Although data was downloaded, no valid price entries were found for any stock. Cannot generate chart."
+        )
         return
 
     print(f"✅ Successfully retrieved data for: {', '.join(successful_tickers)}")
@@ -114,7 +121,7 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
     filtered_prices = close_prices[successful_tickers].copy()
 
     # Drop any leading rows with NaN values (important for the initial normalization point)
-    filtered_prices = filtered_prices.dropna(how='all')
+    filtered_prices = filtered_prices.dropna(how="all")
 
     # Normalize the prices so that the first price in the series is 100 for all stocks.
     normalized_prices = filtered_prices.div(filtered_prices.iloc[0]) * 100
@@ -124,14 +131,19 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
 
     # Plot each stock's normalized performance
     for ticker in successful_tickers:
-        plt.plot(normalized_prices.index, normalized_prices[ticker], label=ticker, linewidth=2)
+        plt.plot(
+            normalized_prices.index,
+            normalized_prices[ticker],
+            label=ticker,
+            linewidth=2,
+        )
 
     # Add chart features
-    plt.title(f'Normalized Stock Price Movement ({period_months} Months)', fontsize=16)
-    plt.xlabel('Date', fontsize=12)
-    plt.ylabel('Normalized Price (%) - Base = 100%', fontsize=12)
-    plt.legend(title='Ticker', fontsize=10)
-    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.title(f"Normalized Stock Price Movement ({period_months} Months)", fontsize=16)
+    plt.xlabel("Date", fontsize=12)
+    plt.ylabel("Normalized Price (%) - Base = 100%", fontsize=12)
+    plt.legend(title="Ticker", fontsize=10)
+    plt.grid(True, linestyle="--", alpha=0.6)
 
     # Use tight_layout to ensure labels are not cut off
     plt.tight_layout()
@@ -139,12 +151,14 @@ def generate_stock_chart(tickers: list, period_months: int = 6, output_file: str
     # Save the chart
     plt.savefig(output_file)
     print(f"\n✅ Chart successfully saved to {output_file}")
-    print("The y-axis is normalized to 100% at the start date for performance comparison.")
+    print(
+        "The y-axis is normalized to 100% at the start date for performance comparison."
+    )
 
 
 if __name__ == "__main__":
     # Tickers: NVIDIA (NVDA), Intel (INTC), Sony (SONY)
-    STOCK_TICKERS = ['NVDA', 'INTC', 'SONY']
+    STOCK_TICKERS = ["NVDA", "INTC", "SONY"]
 
     # Run the chart generation for the last 6 months
     generate_stock_chart(STOCK_TICKERS, period_months=6)

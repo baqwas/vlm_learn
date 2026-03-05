@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
+# -*- coding: utf-8 -*-
 stem_reasoning.py
 
 Qwen3-VL-2B-Thinking (Smallest Reasoning Model) CPU Inference for STEM/Math Problems.
@@ -82,28 +82,34 @@ DTYPE = torch.float32
 # Example uses a generic diagram to demonstrate the input structure
 # IMAGE_URL: str = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/qwen_vl_example.png"
 # IMAGE_URL: str = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.a7l-qmhc0jgbFhMi9j5wAgHaHa%3Fcb%3Ducfimgc2%26pid%3DApi&f=1&ipt=451cf4a2a6f8a19061c238e015c7f6059b2f6775ada691d50ba27b57da297d2e&ipo=images"
-IMAGE_URL: str = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.XH4dq3OGiKkdCkDBiDkAOgHaJl%3Fpid%3DApi&f=1&ipt=2ab3f3b00c630efa29090002069be5241a70765e4a83f41de7530e3cf1f49029&ipo=images"
+IMAGE_URL: str = (
+    "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.XH4dq3OGiKkdCkDBiDkAOgHaJl%3Fpid%3DApi&f=1&ipt=2ab3f3b00c630efa29090002069be5241a70765e4a83f41de7530e3cf1f49029&ipo=images"
+)
 
 # Placeholder for a local STEM/Math diagram or problem image
 # NOTE: Replace 'path/to/your/local/image.png' with the actual file path on your system.
 # The image must be accessible from where you run the script.
 LOCAL_IMAGE_PATH: str = "../images/composite_area_figure.png"
 
+
 def load_local_image(file_path: str) -> Image.Image:
     """Reads an image from a local file path and returns a PIL Image object."""
     print(f"Attempting to load image from: {file_path}")
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Error: Local image file not found at path: {file_path}")
+        raise FileNotFoundError(
+            f"Error: Local image file not found at path: {file_path}"
+        )
 
     try:
         # Use PIL's Image.open() for local file reading
         # .convert('RGB') ensures a consistent image format
-        image = Image.open(file_path).convert('RGB')
+        image = Image.open(file_path).convert("RGB")
         print("✅ Image loaded successfully.")
         return image
     except Exception as e:
         print(f"Error loading image file: {e}")
         raise
+
 
 def download_and_prepare_image(url: str) -> Image.Image:
     """Downloads an image from a URL and returns a PIL Image object."""
@@ -111,7 +117,7 @@ def download_and_prepare_image(url: str) -> Image.Image:
     try:
         response = requests.get(url, stream=True)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
-        image = Image.open(io.BytesIO(response.content)).convert('RGB')
+        image = Image.open(io.BytesIO(response.content)).convert("RGB")
         return image
     except requests.exceptions.RequestException as e:
         print(f"Error downloading image: {e}")
@@ -124,10 +130,7 @@ def run_stem_reasoning(model_id: str, device: str, image_path: str, math_prompt:
     # --- 1. Load Model and Processor ---
     print(f"\n🧠 Loading model {model_id} to {device} (requires significant RAM)...")
     model = Qwen3VLForConditionalGeneration.from_pretrained(
-        model_id,
-        device_map=device,
-        dtype=DTYPE,
-        trust_remote_code=True
+        model_id, device_map=device, dtype=DTYPE, trust_remote_code=True
     )
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     print("✅ Model loaded successfully.")
@@ -143,8 +146,10 @@ def run_stem_reasoning(model_id: str, device: str, image_path: str, math_prompt:
             "content": [
                 {"type": "image", "image": image},  # The image object
                 # The prompt asks for step-by-step reasoning
-                {"type": "text",
-                 "text": f"Calculate the total area of the figures shown in the diagram. Show your work."},
+                {
+                    "type": "text",
+                    "text": f"Calculate the total area of the figures shown in the diagram. Show your work.",
+                },
             ],
         }
     ]
@@ -156,7 +161,7 @@ def run_stem_reasoning(model_id: str, device: str, image_path: str, math_prompt:
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     # Move inputs to the designated device (CPU)
@@ -174,7 +179,7 @@ def run_stem_reasoning(model_id: str, device: str, image_path: str, math_prompt:
     )
 
     # Decode the generated IDs, skipping the input prompt tokens
-    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]):].tolist()
+    generated_ids_trimmed = generated_ids[0][len(inputs.input_ids[0]) :].tolist()
     response = processor.decode(generated_ids_trimmed, skip_special_tokens=True)
 
     # --- 4. Print Output ---

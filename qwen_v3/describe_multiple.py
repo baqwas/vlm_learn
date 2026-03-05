@@ -60,7 +60,9 @@ TEMPERATURE: float = 0.7
 TOP_P: float = 0.8
 
 
-def load_model_and_processor(model_id: str, device: str) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
+def load_model_and_processor(
+    model_id: str, device: str
+) -> Tuple[AutoModelForImageTextToText, AutoProcessor]:
     """
     Loads the Qwen3-VL model using AutoModelForImageTextToText for CPU inference.
 
@@ -81,9 +83,11 @@ def load_model_and_processor(model_id: str, device: str) -> Tuple[AutoModelForIm
         device_map=device,
         dtype=torch.float32,
         trust_remote_code=True,
-        token=hf_token
+        token=hf_token,
     )
-    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, token=hf_token)
+    processor = AutoProcessor.from_pretrained(
+        model_id, trust_remote_code=True, token=hf_token
+    )
     print("✅ Model loaded successfully.")
     return model, processor
 
@@ -95,17 +99,23 @@ def download_image(image_url: str) -> Image.Image:
     print(f"Downloading image from: {image_url}")
     response = requests.get(image_url, stream=True)
     if response.status_code != 200:
-        raise ConnectionError(f"Failed to download image from {image_url}. Status code: {response.status_code}")
+        raise ConnectionError(
+            f"Failed to download image from {image_url}. Status code: {response.status_code}"
+        )
 
     try:
-        image = Image.open(io.BytesIO(response.content)).convert('RGB')
+        image = Image.open(io.BytesIO(response.content)).convert("RGB")
     except Exception as e:
-        raise Image.UnidentifiedImageError(f"Could not identify image from {image_url}: {e}")
+        raise Image.UnidentifiedImageError(
+            f"Could not identify image from {image_url}: {e}"
+        )
 
     return image
 
 
-def prepare_multimodal_input(image: Image.Image, prompt_text: str) -> List[Dict[str, Any]]:
+def prepare_multimodal_input(
+    image: Image.Image, prompt_text: str
+) -> List[Dict[str, Any]]:
     """
     Constructs the chat messages structure using a PIL Image object.
     """
@@ -114,7 +124,7 @@ def prepare_multimodal_input(image: Image.Image, prompt_text: str) -> List[Dict[
             "role": "user",
             "content": [
                 {"type": "image", "image": image},
-                {"type": "text", "text": prompt_text}
+                {"type": "text", "text": prompt_text},
             ],
         }
     ]
@@ -122,12 +132,12 @@ def prepare_multimodal_input(image: Image.Image, prompt_text: str) -> List[Dict[
 
 
 def generate_response(
-        model: AutoModelForImageTextToText,
-        processor: AutoProcessor,
-        messages: List[Dict[str, Any]],
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float
+    model: AutoModelForImageTextToText,
+    processor: AutoProcessor,
+    messages: List[Dict[str, Any]],
+    max_new_tokens: int,
+    temperature: float,
+    top_p: float,
 ) -> str:
     """
     Processes the input and generates a response from the Qwen3-VL model.
@@ -137,7 +147,7 @@ def generate_response(
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     inputs = inputs.to(model.device)
@@ -151,7 +161,9 @@ def generate_response(
         top_p=top_p,
     )
 
-    response = processor.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    response = processor.decode(
+        outputs[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True
+    )
     return response.strip()
 
 
@@ -167,38 +179,38 @@ def parse_args():
         "--input_file",
         type=str,
         default=DEFAULT_INPUT_FILE,  # Default value set here
-        help=f"Path to the text file containing one image URL per line. Default: '{DEFAULT_INPUT_FILE}'"
+        help=f"Path to the text file containing one image URL per line. Default: '{DEFAULT_INPUT_FILE}'",
     )
     parser.add_argument(
         "--output_file",
         type=str,
         default=DEFAULT_OUTPUT_FILE,  # Default value set here
-        help=f"Base name for the JSON file where results will be written. A timestamp will be appended. Default: '{DEFAULT_OUTPUT_FILE}'"
+        help=f"Base name for the JSON file where results will be written. A timestamp will be appended. Default: '{DEFAULT_OUTPUT_FILE}'",
     )
     parser.add_argument(
         "--prompt",
         type=str,
         default=DEFAULT_PROMPT,
-        help=f"The text prompt to use for image descriptions. Default: '{DEFAULT_PROMPT}'"
+        help=f"The text prompt to use for image descriptions. Default: '{DEFAULT_PROMPT}'",
     )
     # --- Generation arguments (already had defaults) ---
     parser.add_argument(
         "--max_new_tokens",
         type=int,
         default=MAX_NEW_TOKENS,
-        help=f"Maximum new tokens to generate. Default: {MAX_NEW_TOKENS}"
+        help=f"Maximum new tokens to generate. Default: {MAX_NEW_TOKENS}",
     )
     parser.add_argument(
         "--temperature",
         type=float,
         default=TEMPERATURE,
-        help=f"Temperature for text generation. Default: {TEMPERATURE}"
+        help=f"Temperature for text generation. Default: {TEMPERATURE}",
     )
     parser.add_argument(
         "--top_p",
         type=float,
         default=TOP_P,
-        help=f"Top-p value for text generation. Default: {TOP_P}"
+        help=f"Top-p value for text generation. Default: {TOP_P}",
     )
     return parser.parse_args()
 
@@ -216,19 +228,22 @@ def main():
 
     # --- 2. Read Image URLs from Input File ---
     try:
-        with open(args.input_file, 'r') as f:
+        with open(args.input_file, "r") as f:
             image_urls = [line.strip() for line in f if line.strip()]
     except FileNotFoundError:
         print(f"Error: Input file '{args.input_file}' not found.")
         print(
-            f"Please create a file named '{DEFAULT_INPUT_FILE}' containing image URLs, one per line, or specify the file using the --input_file argument.")
+            f"Please create a file named '{DEFAULT_INPUT_FILE}' containing image URLs, one per line, or specify the file using the --input_file argument."
+        )
         return
     except Exception as e:
         print(f"Error reading input file: {e}")
         return
 
     if not image_urls:
-        print(f"Warning: Input file '{args.input_file}' is empty. No images to process.")
+        print(
+            f"Warning: Input file '{args.input_file}' is empty. No images to process."
+        )
         return
 
     print(f"\nProcessing {len(image_urls)} images from '{args.input_file}'...")
@@ -251,53 +266,65 @@ def main():
                 messages,
                 args.max_new_tokens,
                 args.temperature,
-                args.top_p
+                args.top_p,
             )
             print(f"✅ Generated response for {image_url}: {response[:100]}...")
 
             # Store successful result
-            results.append({
-                "image_url": image_url,
-                "prompt": args.prompt,
-                "response": response,
-                "model_id": MODEL_ID,
-                "device": DEVICE,
-                "max_new_tokens": args.max_new_tokens,
-                "temperature": args.temperature,
-                "top_p": args.top_p,
-                "timestamp": datetime.now().isoformat() + "Z"
-            })
+            results.append(
+                {
+                    "image_url": image_url,
+                    "prompt": args.prompt,
+                    "response": response,
+                    "model_id": MODEL_ID,
+                    "device": DEVICE,
+                    "max_new_tokens": args.max_new_tokens,
+                    "temperature": args.temperature,
+                    "top_p": args.top_p,
+                    "timestamp": datetime.now().isoformat() + "Z",
+                }
+            )
 
         except (ConnectionError, Image.UnidentifiedImageError) as e:
-            error_message = f"ERROR: {e.__class__.__name__}: {str(e).splitlines()[0]}..."
+            error_message = (
+                f"ERROR: {e.__class__.__name__}: {str(e).splitlines()[0]}..."
+            )
             print(f"❌ Error processing {image_url}: {error_message}")
             # Store error result
-            results.append({
-                "image_url": image_url,
-                "prompt": args.prompt,
-                "response": error_message,
-                "model_id": MODEL_ID,
-                "device": DEVICE,
-                "max_new_tokens": args.max_new_tokens,
-                "temperature": args.temperature,
-                "top_p": args.top_p,
-                "timestamp": datetime.now().isoformat() + "Z"
-            })
+            results.append(
+                {
+                    "image_url": image_url,
+                    "prompt": args.prompt,
+                    "response": error_message,
+                    "model_id": MODEL_ID,
+                    "device": DEVICE,
+                    "max_new_tokens": args.max_new_tokens,
+                    "temperature": args.temperature,
+                    "top_p": args.top_p,
+                    "timestamp": datetime.now().isoformat() + "Z",
+                }
+            )
         except Exception as e:
-            error_message = f"UNEXPECTED ERROR: {e.__class__.__name__}: {str(e).splitlines()[0]}..."
-            print(f"❌ An unexpected error occurred while processing {image_url}: {error_message}")
+            error_message = (
+                f"UNEXPECTED ERROR: {e.__class__.__name__}: {str(e).splitlines()[0]}..."
+            )
+            print(
+                f"❌ An unexpected error occurred while processing {image_url}: {error_message}"
+            )
             # Store unexpected error result
-            results.append({
-                "image_url": image_url,
-                "prompt": args.prompt,
-                "response": error_message,
-                "model_id": MODEL_ID,
-                "device": DEVICE,
-                "max_new_tokens": args.max_new_tokens,
-                "temperature": args.temperature,
-                "top_p": args.top_p,
-                "timestamp": datetime.now().isoformat() + "Z"
-            })
+            results.append(
+                {
+                    "image_url": image_url,
+                    "prompt": args.prompt,
+                    "response": error_message,
+                    "model_id": MODEL_ID,
+                    "device": DEVICE,
+                    "max_new_tokens": args.max_new_tokens,
+                    "temperature": args.temperature,
+                    "top_p": args.top_p,
+                    "timestamp": datetime.now().isoformat() + "Z",
+                }
+            )
 
     # --- 4. Write Results to JSON Output File ---
     try:
@@ -306,13 +333,15 @@ def main():
         base, ext = os.path.splitext(args.output_file)
         final_output_file = f"{base}{timestamp}{ext}"
 
-        with open(final_output_file, 'w', encoding='utf-8') as f:
+        with open(final_output_file, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
         print(f"\n✅ All results written to '{final_output_file}'.")
     except Exception as e:
         # Note: final_output_file may not be defined in all error paths, but it is defined here.
         # Fallback to args.output_file if necessary, but using the calculated name is better for context.
-        print(f"Error writing results to output file '{args.output_file}' with stamp attempt: {e}")
+        print(
+            f"Error writing results to output file '{args.output_file}' with stamp attempt: {e}"
+        )
 
 
 if __name__ == "__main__":

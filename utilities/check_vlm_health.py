@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#!/usr/bin/env python3
+"""
+check_vllm_health.py
+"""
 import os
 import torch
 import json
@@ -27,7 +31,7 @@ def audit_vlm():
         "gpu_name": device_name,
         "vram_gb": round(vram_gb, 2),
         "weights": "FOUND" if weights_found else "MISSING",
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
     # Save for the dashboard

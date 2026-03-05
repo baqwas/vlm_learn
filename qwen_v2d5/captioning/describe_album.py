@@ -35,15 +35,23 @@ from transformers.generation import GenerationConfig
 torch.manual_seed(1234)
 
 # Load the processor and the model
-processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct", trust_remote_code=True)
+processor = AutoProcessor.from_pretrained(
+    "Qwen/Qwen2.5-VL-3B-Instruct", trust_remote_code=True
+)
 
 # Use the specific model class to load the model.
 # This resolves the Unrecognized configuration class error.
-model = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct", device_map="cpu", trust_remote_code=True).eval()
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+    "Qwen/Qwen2.5-VL-3B-Instruct", device_map="cpu", trust_remote_code=True
+).eval()
 
 # Define the folder containing your images
 image_folder = "../images/album"
-image_files = [os.path.join(image_folder, f) for f in os.listdir(image_folder) if f.endswith(('.jpg', '.JPG', '.jpeg', '.png'))]
+image_files = [
+    os.path.join(image_folder, f)
+    for f in os.listdir(image_folder)
+    if f.endswith((".jpg", ".JPG", ".jpeg", ".png"))
+]
 
 # Loop through each image file and process it individually
 for i, image_path in enumerate(image_files):
@@ -51,7 +59,7 @@ for i, image_path in enumerate(image_files):
 
     # Open the image using PIL
     try:
-        image = Image.open(image_path).convert('RGB')
+        image = Image.open(image_path).convert("RGB")
     except Exception as e:
         print(f"Could not open image {image_path}: {e}")
         continue
@@ -61,7 +69,7 @@ for i, image_path in enumerate(image_files):
 
     # Process the image and text to get model inputs
     # The processor expects the image and text as separate arguments.
-    inputs = processor(images=image, text=text_prompt, return_tensors='pt')
+    inputs = processor(images=image, text=text_prompt, return_tensors="pt")
 
     # Generate prediction for the single image
     with torch.no_grad():

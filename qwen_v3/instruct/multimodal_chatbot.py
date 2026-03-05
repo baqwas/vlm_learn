@@ -36,6 +36,7 @@ from PIL import Image
 
 # --- Utility Functions ---
 
+
 def _strip_quotes(value):
     """Utility function to defensively strip leading/trailing quotes."""
     if isinstance(value, str):
@@ -48,13 +49,14 @@ def _strip_quotes(value):
 
 # --- Core Inference Function (Based on user's snippet) ---
 
+
 def run_local_qwen_query(image_path, text_prompt):
     """
     Loads Qwen3-VL and runs the multimodal query locally using the
     HuggingFace transformers pipeline.
     """
 
-    #print("Loading Qwen3-VL-2B-Instruct model and processor...")
+    # print("Loading Qwen3-VL-2B-Instruct model and processor...")
     # print("Loading Qwen3-VL-4B-Instruct model and processor...")
     print("Loading Qwen3-VL-8B-Instruct model and processor...")
     print("--- Running in CPU-ONLY mode ---")
@@ -64,14 +66,17 @@ def run_local_qwen_query(image_path, text_prompt):
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             "Qwen/Qwen3-VL-8B-Instruct",
             dtype=torch.float32,  # Use float32 for CPU compatibility
-            device_map=None       # Disable automatic device mapping (e.g., CUDA)
-        ).to('cpu')               # Explicitly move model to CPU
+            device_map=None,  # Disable automatic device mapping (e.g., CUDA)
+        ).to(
+            "cpu"
+        )  # Explicitly move model to CPU
 
         # processor = AutoProcessor.from_pretrained("Qwen/Qwen3-VL-2B-Instruct")
         processor = AutoProcessor.from_pretrained("Qwen/Qwen3-VL-8B-Instruct")
     except Exception as e:
         print(
-            f"Error loading model or processor. Please ensure you have transformers and torch installed, and check your environment for local model requirements. Error: {e}")
+            f"Error loading model or processor. Please ensure you have transformers and torch installed, and check your environment for local model requirements. Error: {e}"
+        )
         return
 
     print(f"Loading image from: {image_path}")
@@ -104,7 +109,7 @@ def run_local_qwen_query(image_path, text_prompt):
         tokenize=True,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     # Move inputs to the model's device (which is now guaranteed to be 'cpu')
@@ -116,18 +121,23 @@ def run_local_qwen_query(image_path, text_prompt):
     generated_ids = model.generate(
         **inputs,
         max_new_tokens=1024,  # Increased for a complete response
-        do_sample=False  # For deterministic output
+        do_sample=False,  # For deterministic output
     )
 
     # Trim the input prompt tokens to get only the new response
     generated_ids_trimmed = [
-        out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        out_ids[len(in_ids) :]
+        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
     ]
 
     # Decode the output
     output_text = processor.batch_decode(
-        generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-    )[0]  # Take the first and only result
+        generated_ids_trimmed,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False,
+    )[
+        0
+    ]  # Take the first and only result
 
     print("\n--- Qwen-VL Local Response (via transformers) ---")
     print(output_text.strip())
@@ -139,15 +149,16 @@ def run_local_qwen_query(image_path, text_prompt):
 if __name__ == "__main__":
     # Hardcoded defaults since config.toml is no longer used for API settings
     DEFAULT_IMAGE_PATH = "/qwen_v3/images/Istanbul Haydari.jpg"
-    DEFAULT_TEXT_PROMPT = "What is the main subject of this image, and what cuisine does it convey?"
+    DEFAULT_TEXT_PROMPT = (
+        "What is the main subject of this image, and what cuisine does it convey?"
+    )
 
     # 1. Parse command-line arguments
     parser = argparse.ArgumentParser(
-        description="Local multimodal chatbot client for Qwen3-VL Instruct (using transformers).")
+        description="Local multimodal chatbot client for Qwen3-VL Instruct (using transformers)."
+    )
     parser.add_argument(
-        '-i', '--input',
-        type=str,
-        help="Specify the path to the input image file."
+        "-i", "--input", type=str, help="Specify the path to the input image file."
     )
     args = parser.parse_args()
 
@@ -161,7 +172,9 @@ if __name__ == "__main__":
     # 3. Check if the determined image file exists
     if not os.path.exists(image_path):
         print(f"🚨 CRITICAL: The image file '{image_path}' was not found.")
-        print("Please ensure the file exists or specify a correct path using the -i/--input flag.")
+        print(
+            "Please ensure the file exists or specify a correct path using the -i/--input flag."
+        )
     else:
         print(f"\nUser Prompt: {DEFAULT_TEXT_PROMPT}")
 

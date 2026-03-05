@@ -32,11 +32,12 @@ logger = logging.getLogger(__name__)
 
 # --- 🧩 CORE LOGIC ---
 
+
 def generate_subitizing_set(
-        output_dir: str = "dataset/subitizing",
-        num_images: int = 10,
-        img_size: int = 1024,
-        radius: int = 40
+    output_dir: str = "dataset/subitizing",
+    num_images: int = 10,
+    img_size: int = 1024,
+    radius: int = 40,
 ) -> None:
     """
     Generates a subitizing dataset with JSON ground truth.
@@ -65,7 +66,7 @@ def generate_subitizing_set(
     for n in range(1, num_images + 1):
         try:
             # Create a high-fidelity white canvas
-            img = Image.new('RGB', (img_size, img_size), color=(255, 255, 255))
+            img = Image.new("RGB", (img_size, img_size), color=(255, 255, 255))
             draw = ImageDraw.Draw(img)
             bboxes = []
             centers = []
@@ -85,7 +86,11 @@ def generate_subitizing_set(
 
                 if not is_overlapping:
                     # Draw visual element
-                    draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill='green', outline='black')
+                    draw.ellipse(
+                        [x - radius, y - radius, x + radius, y + radius],
+                        fill="green",
+                        outline="black",
+                    )
 
                     # Store normalized [ymin, xmin, ymax, xmax] for VLM benchmarking
                     bboxes.append([y - radius, x - radius, y + radius, x + radius])
@@ -94,7 +99,9 @@ def generate_subitizing_set(
                 attempts += 1
 
             if placed < n:
-                logger.warning(f"⚠️ Image {n}: Resource limit reached. Placed {placed}/{n} objects.")
+                logger.warning(
+                    f"⚠️ Image {n}: Resource limit reached. Placed {placed}/{n} objects."
+                )
 
             # File IO Workflow
             img_filename = f"subitizing_{n:02d}.jpg"
@@ -104,7 +111,7 @@ def generate_subitizing_set(
             metadata[img_filename] = {
                 "count": placed,
                 "bboxes": bboxes,
-                "resolution": [img_size, img_size]
+                "resolution": [img_size, img_size],
             }
             logger.info(f"  🖼️ Created: {img_filename} (Objects: {placed})")
 
@@ -114,7 +121,7 @@ def generate_subitizing_set(
     # Metadata persistence
     try:
         json_path = out_path / "ground_truth.json"
-        with open(json_path, "w", encoding='utf-8') as f:
+        with open(json_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4, ensure_ascii=False)
         logger.info(f"✅ SUCCESS: Dataset stored in '{output_dir}'.")
     except IOError as e:

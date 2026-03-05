@@ -1,5 +1,6 @@
 from langchain_core.tools import tool
 
+
 @tool
 def convert_temperature_fahrenheit_to_celsius(fahrenheit_temperature: int) -> int:
     """

@@ -63,8 +63,9 @@ except ImportError:
 from transformers import (
     AutoProcessor,
     BitsAndBytesConfig,
-    Qwen2_5_VLForConditionalGeneration
+    Qwen2_5_VLForConditionalGeneration,
 )
+
 # Note: process_vision_info is still used for text/image, but we override video loading
 from qwen_vl_utils import process_vision_info
 
@@ -111,7 +112,9 @@ def load_video_with_torchcodec(video_path, target_fps=2.0, max_frames=32):
         total_frames_needed = 1
 
     # Generate uniform integer indices for sampling frames
-    indices = torch.linspace(0, total_video_frames - 1, steps=total_frames_needed).to(torch.int64)
+    indices = torch.linspace(0, total_video_frames - 1, steps=total_frames_needed).to(
+        torch.int64
+    )
 
     # Standard loop using square bracket indexing supported by torchcodec
     frames = []
@@ -148,15 +151,19 @@ def setup_logging(log_path):
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] VIDEO_AUDIT: %(message)s',
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler(sys.stdout)]
+        format="%(asctime)s [%(levelname)s] VIDEO_AUDIT: %(message)s",
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler(sys.stdout)],
     )
 
 
 def run_video_audit(args, config):
     """Orchestrates the video audit process including model loading and inference."""
-    model_id = args.model or config.get("vlm_video_model_id", "Qwen/Qwen2.5-VL-3B-Instruct")
-    video_dir = args.video_dir or config.get("video_dir", "/home/reza/Videos/opencv/vlm/qwen2.5-vl/videos")
+    model_id = args.model or config.get(
+        "vlm_video_model_id", "Qwen/Qwen2.5-VL-3B-Instruct"
+    )
+    video_dir = args.video_dir or config.get(
+        "video_dir", "/home/reza/Videos/opencv/vlm/qwen2.5-vl/videos"
+    )
     video_dir = os.path.expanduser(video_dir)
     sys_prompt = config.get("system_prompt", "You are a professional aviation auditor.")
     target_fps = args.fps or config.get("fps", 2.0)
@@ -174,7 +181,7 @@ def run_video_audit(args, config):
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=torch.float16
+            bnb_4bit_compute_dtype=torch.float16,
         )
 
     try:
@@ -185,7 +192,7 @@ def run_video_audit(args, config):
             offload_folder=offload_dir,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            torch_dtype=torch.float32 if target_device == "cpu" else "auto"
+            torch_dtype=torch.float32 if target_device == "cpu" else "auto",
         )
     except Exception as e:
         logger.error(f"🤦‍♂️ Model Load Failed: {e}")
@@ -197,8 +204,11 @@ def run_video_audit(args, config):
         logger.error(f"Directory not found: {video_dir}")
         return
 
-    videos = sorted([f for f in os.listdir(video_dir) if f.endswith(('.mp4', '.mkv', '.mov'))])
-    if not videos: return
+    videos = sorted(
+        [f for f in os.listdir(video_dir) if f.endswith((".mp4", ".mkv", ".mov"))]
+    )
+    if not videos:
+        return
 
     print("\n" + "🛫" * 30)
     print(f" 🎬 VIDEO AUDIT QUEUE: {video_dir}")
@@ -214,7 +224,8 @@ def run_video_audit(args, config):
 
     while True:
         user_query = input("\n🔎 ACTION QUERY >> ")
-        if user_query.lower() in ['exit', 'quit']: break
+        if user_query.lower() in ["exit", "quit"]:
+            break
 
         try:
             # 1. Manually Load Video using torchcodec
@@ -223,13 +234,18 @@ def run_video_audit(args, config):
             # 2. Setup message structure
             messages = [
                 {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
-                {"role": "user", "content": [
-                    {"type": "video", "video": video_path, "fps": target_fps},
-                    {"type": "text", "text": user_query}
-                ]}
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "video", "video": video_path, "fps": target_fps},
+                        {"type": "text", "text": user_query},
+                    ],
+                },
             ]
 
-            text_prompt = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            text_prompt = processor.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
 
             # Use process_vision_info only for image/text metadata
             image_inputs, _ = process_vision_info(messages)
@@ -240,19 +256,33 @@ def run_video_audit(args, config):
                 for i in range(len(video_inputs)):
                     frame = video_inputs[i]
                     orig_shape = frame.shape
-                    frame_flat = np.ascontiguousarray(frame.cpu().numpy().flatten().astype(np.float32))
+                    frame_flat = np.ascontiguousarray(
+                        frame.cpu().numpy().flatten().astype(np.float32)
+                    )
                     vlm_engine.normalize_image(frame_flat, mean_val, std_val)
-                    video_inputs[i] = torch.from_numpy(frame_flat.reshape(orig_shape)).to(frame.device)
+                    video_inputs[i] = torch.from_numpy(
+                        frame_flat.reshape(orig_shape)
+                    ).to(frame.device)
 
             # Wrapping in list as processor expects batch format
             video_list = [video_inputs] if video_inputs is not None else None
 
-            inputs = processor(text=[text_prompt], images=image_inputs, videos=video_list,
-                               padding=True, return_tensors="pt").to(target_device)
+            inputs = processor(
+                text=[text_prompt],
+                images=image_inputs,
+                videos=video_list,
+                padding=True,
+                return_tensors="pt",
+            ).to(target_device)
 
             generated_ids = model.generate(**inputs, max_new_tokens=512)
-            generated_ids_trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
-            response = processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True)[0]
+            generated_ids_trimmed = [
+                out_ids[len(in_ids) :]
+                for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+            ]
+            response = processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True
+            )[0]
 
             print(f"\n📑 REPORT ({model_id}):\n{response}")
 
@@ -266,7 +296,9 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, help="Override model_id")
     parser.add_argument("--video-dir", type=str, help="Override source video directory")
     parser.add_argument("--fps", type=float, help="Override sampling FPS")
-    parser.add_argument("--config", type=str, default="config.toml", help="Path to config file")
+    parser.add_argument(
+        "--config", type=str, default="config.toml", help="Path to config file"
+    )
 
     args = parser.parse_args()
     config = load_config(args.config)

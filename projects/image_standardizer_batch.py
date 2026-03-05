@@ -22,7 +22,7 @@ INPUT_DIR = "../images/benchmark/subitizing"
 OUTPUT_DIR = "../images/benchmark/standardized"
 TARGET_SIZE = (1024, 1024)
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
 def standardize_images():
@@ -35,7 +35,7 @@ def standardize_images():
         print(f"❌ Error: Input folder '{INPUT_DIR}' not found!")
         return
 
-    supported_formats = ('.jpg', '.jpeg', '.png', '.webp')
+    supported_formats = (".jpg", ".jpeg", ".png", ".webp")
     processed_count = 0
 
     print(f"🚀 Processing images from {INPUT_DIR}...")

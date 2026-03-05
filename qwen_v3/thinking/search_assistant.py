@@ -10,7 +10,9 @@ with textual constraints (from the user) to produce a structured search query.
 from typing import Dict, Any
 
 
-def run_ecommerce_search_agent(visual_input_attributes: Dict[str, str], user_constraints: Dict[str, Any]) -> str:
+def run_ecommerce_search_agent(
+    visual_input_attributes: Dict[str, str], user_constraints: Dict[str, Any]
+) -> str:
     """
     Simulates the Qwen3-VL-Thinking agent process for product search.
 
@@ -39,7 +41,9 @@ def run_ecommerce_search_agent(visual_input_attributes: Dict[str, str], user_con
     final_color = user_constraints.get("ColorOverride")
     price_max = user_constraints.get("PriceMax")
 
-    thinking_trace += "\n[THINKING TRACE: STEP 2 - REASONING & CONSTRAINT INTEGRATION]\n"
+    thinking_trace += (
+        "\n[THINKING TRACE: STEP 2 - REASONING & CONSTRAINT INTEGRATION]\n"
+    )
     thinking_trace += f"1. ANALYZE USER TEXT: Identify constraints and overrides.\n"
     thinking_trace += f"   - TEXT CONSTRAINT (Color): '{final_color}' -> **OVERRIDE** observed color '{base_color}'.\n"
     thinking_trace += f"   - TEXT CONSTRAINT (Price): Max '{price_max}'.\n"
@@ -54,7 +58,7 @@ def run_ecommerce_search_agent(visual_input_attributes: Dict[str, str], user_con
         "category": base_category,
         "style": base_style,
         "color": final_color,
-        "price_max": price_max
+        "price_max": price_max,
     }
 
     # Generate the human-readable sentence (The Final Format)
@@ -70,14 +74,14 @@ def run_ecommerce_search_agent(visual_input_attributes: Dict[str, str], user_con
     thinking_trace += "2. FINAL OUTPUT FORMATTING: Generate human-readable response.\n"
 
     final_demonstration_output = (
-            "=" * 80 + "\n"
-                       "🤖 Qwen3-VL-2B-Thinking Agent Simulation\n"
-                       "--- Visual & Textual Input Fusion ---\n"
-                       f"{thinking_trace.strip()}\n"
-                       "=" * 80 + "\n"
-                                  "\n✅ Final Agent Action & Response:\n"
-                                  f"{human_response}\n"
-                                  f"\n(Structured API Call: {api_query})"
+        "=" * 80 + "\n"
+        "🤖 Qwen3-VL-2B-Thinking Agent Simulation\n"
+        "--- Visual & Textual Input Fusion ---\n"
+        f"{thinking_trace.strip()}\n"
+        "=" * 80 + "\n"
+        "\n✅ Final Agent Action & Response:\n"
+        f"{human_response}\n"
+        f"\n(Structured API Call: {api_query})"
     )
 
     return final_demonstration_output
@@ -90,21 +94,19 @@ VISUAL_INPUT = {
     "Category": "Sweater",
     "Style": "Chunky Cable Knit",
     "Neckline": "V-Neck",
-    "Color": "Dark Teal"
+    "Color": "Dark Teal",
 }
 
 # Input 2: Constraints from the User's Text Prompt
-TEXT_CONSTRAINTS = {
-    "ColorOverride": "Dark Forest Green",
-    "PriceMax": 59.99
-}
+TEXT_CONSTRAINTS = {"ColorOverride": "Dark Forest Green", "PriceMax": 59.99}
 
 if __name__ == "__main__":
     print("--- E-commerce Product Search Agent Demonstration ---")
     print("\n[USER INPUT SIMULATION]")
     print(f"   Image Attributes (Simulated): {VISUAL_INPUT}")
     print(
-        f"   Text Constraints (User Prompt): Find this, but in '{TEXT_CONSTRAINTS['ColorOverride']}' and under ${TEXT_CONSTRAINTS['PriceMax']:.2f}.")
+        f"   Text Constraints (User Prompt): Find this, but in '{TEXT_CONSTRAINTS['ColorOverride']}' and under ${TEXT_CONSTRAINTS['PriceMax']:.2f}."
+    )
     print("\n" + "=" * 80)
 
     # Run the simulated thinking model
