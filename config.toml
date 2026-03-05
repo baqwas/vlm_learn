@@ -43,3 +43,24 @@ video_dir       = "/home/reza/Videos/opencv/vlm/qwen2.5-vl/videos"
 log_file        = "/home/reza/Videos/opencv/logs/video_audit.log"
 system_prompt   = "You are an expert action auditor. Analyze the video for quality and safety."
 fps             = 1.0
+
+# --- 🌍 [HELLO_WORLD] TEST ASSETS ---
+# Logic: Centralized test assets for initial VLM verification.
+[hello_world]
+# model_id       = "Qwen/Qwen3-VL-2B-Instruct"
+# model_id       = "Qwen/Qwen3-VL-2B-Instruct-FP8"
+# model_id       = "Qwen/Qwen3-VL-2B-Instruct-GGUF"
+# model_id       = "Qwen/Qwen3-VL-2B-Thinking"
+# model_id       = "Qwen/Qwen3-VL-2B-Thinking-FP8"
+# model_id       = "Qwen/Qwen3-VL-2B-Thinking-GGUF"
+# model_id       = "Qwen/Qwen3-VL-4B-Instruct"
+# model_id       = "Qwen/Qwen3-VL-4B-Instruct-FP8"
+# model_id       = "Qwen/Qwen3-VL-4B-Instruct-GGUF"
+# model_id       = "Qwen/Qwen3-VL-4B-Thinking"
+# model_id       = "Qwen/Qwen3-VL-4B-Thinking-FP8"
+# model_id       = "Qwen/Qwen3-VL-4B-Thinking-GGUF"
+model_id       = "Qwen/Qwen3-VL-8B-Instruct"
+test_image     = '/home/reza/Videos/opencv/vlm/images/exercises/winter_uk.jpg'
+test_dir       = '/home/reza/Videos/opencv/vlm/images/exercises'
+default_prompt = "Describe this image in detail with grounding."
+log_file       = '/home/reza/Videos/opencv/vlm/logs/benchmark_vlm.json'
