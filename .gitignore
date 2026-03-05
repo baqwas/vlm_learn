@@ -127,3 +127,4 @@ vram_audit.log
 # Byte-compiled C++ Engine artifacts (if not already covered)
 *.so
 build/
+logs/
