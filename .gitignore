@@ -24,6 +24,8 @@ dist/                   #
 .ipynb_checkpoints/     # Jupyter Notebook checkpoints
 pip-log.txt
 pip-delete-this-directory.txt
+.coverage
+coverage.xml
 
 # =============================================================================
 # 🔐 [SECRETS & CONFIGURATION]
@@ -82,3 +84,46 @@ pip-audit-report.txt    #
 .cache_ggshield
 __pycache__/
 *.pyc
+
+# === C++ Build Artifacts ===
+# Ignore the entire build directory where CMake does its work
+build/
+
+# Ignore compiled shared libraries (the .so files Python imports)
+*.so
+*.pyd
+*.dll
+*.dylib
+
+# Ignore object files and static libraries if they ever appear
+*.o
+*.obj
+*.a
+*.lib
+
+# === CMake Generated Files (In case you run cmake in the root by accident) ===
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+
+# === IDE & OS specific ===
+.cache/
+.pypy/
+.pydistutils.cfg
+
+# --- VLM & Benchmarking Housekeeping ---
+# SSD buffer for model weights (prevents 8GB RAM overflow)
+offload_cache/
+
+# Real-time VRAM telemetry logs from diagnostics
+vram_audit.log
+
+# Temporary tmux session artifacts (if any)
+.tmux_history
+
+# Byte-compiled C++ Engine artifacts (if not already covered)
+*.so
+build/
