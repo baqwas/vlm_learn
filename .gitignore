@@ -125,6 +125,11 @@ vram_audit.log
 .tmux_history
 
 # Byte-compiled C++ Engine artifacts (if not already covered)
-*.so
-build/
-logs/
+
+
+# project refactor from task-oriented to model-agnostic structure
+refactor_vlm_project.sh
+# keep the noise out but let the integrity reports through
+logs/*
+!logs/vlm_health.json
+!logs/benchmark_results.json

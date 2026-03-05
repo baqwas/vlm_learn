@@ -6,7 +6,8 @@ AUTHOR: Matha Goram
 LICENSE: MIT
 LOCATION: tests/test_qwen_inference.py
 PURPOSE: Verification of Qwen model loading and inference capabilities.
-UPDATED: 2026-03-05
+UPDATED: 2026-03-05 08:13:21
+COPYRIGHT: (c) 2026 ParkCircus Productions; All Rights Reserved.
 ================================================================================
 """
 

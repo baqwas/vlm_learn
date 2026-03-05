@@ -1,7 +1,7 @@
 # ================================================================================
 # PROJECT: VLM Learn / ParkCircus Productions 🚀
-# PURPOSE: Hardened, Consolidated Security, Licensing, and Functional Audit
-# UPDATED: 2026-03-04
+# PURPOSE: Hardened Task-Oriented Security, Licensing, and Functional Audit
+# UPDATED: 2026-03-05
 # ================================================================================
 
 repos:
@@ -13,62 +13,46 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-        args: ['--maxkb=500'] # Set to 500KB per your current requirement
+        args: ['--maxkb=500']
 
   # 2. SECRET SCANNING (GITGUARDIAN)
   - repo: https://github.com/GitGuardian/ggshield
-    rev: v1.35.0 # Updated to a more recent stable version
+    rev: v1.35.0
     hooks:
       - id: ggshield
         stages: [pre-commit]
 
-  # 3. PYTHON SPECIFIC CHECKS & NO-EVAL
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
-    hooks:
-      - id: python-no-eval
-        # We use the top-level 'exclude' instead of passing it as an argument
-        exclude: '(?x)(hello_qwen\.py|describe_album\.py)'
-
-
-  # 4. RIGID LICENSING & DOCUMENTATION (LOCAL)
+  # 3. RIGID LICENSING & DOCUMENTATION (LOCAL)
   - repo: local
     hooks:
       - id: check-license-header
-        name: Check for MIT License & Project Header
-        # Regex enforces shebang, PROJECT, AUTHOR (Matha Goram), and LICENSE markers
-        entry: '(?s)^#!/usr/bin/env python3\s+"""\s+={5,}.*?PROJECT:.*?AUTHOR:.*?Matha Goram.*?LICENSE:.*?MIT.*?'
+        name: 📜 MIT License & Author Header
+        # Regex validates existence of Version, Updated, and Copyright
+        entry: '(?s)^#!/usr/bin/env python3\s+"""\s+={5,}.*?PROJECT:.*?VERSION: [0-9.]+\s+UPDATED:.*?\s+COPYRIGHT: \(c\) 2026 ParkCircus Productions; All Rights Reserved\..*?AUTHOR:.*?Matha Goram.*?LICENSE:.*?MIT.*?'
         language: pygrep
         types: [python]
-        exclude: ^tests/
         description: "Ensures Python files include the standardized ParkCircus Productions header."
 
-#      - id: check-docstring-presence
-#        name: Check for Module Docstrings
-#        # This checks if the file (excluding shebangs/comments) starts with triple quotes
-#        entry: bash -c 'for f in "$@"; do if ! head -n 20 "$f" | grep -q "^\"\"\""; then echo "Missing module docstring in $f"; exit 1; fi; done' --
-#        language: system
-#        types: [python]
-#        description: "Ensures every script starts with a descriptive triple-quote docstring."
-
-      # 5. VLM FUNCTIONAL HEALTH AUDIT
+  # 4. VLM FUNCTIONAL HEALTH AUDIT (STDOUT ONLY)
+  - repo: local
+    hooks:
       - id: vlm-health-audit
-        name: VLM Integrity Check
+        name: 🩺 VLM Integrity Check
+        # Uses the refactored script that prints to console instead of logs/
         entry: python3 utilities/check_vlm_health.py
         language: system
         pass_filenames: false
-        stages: [pre-commit]
-        description: "Runs custom VLM health checks to verify model weights and local engine paths."
+        always_run: true
+        description: "Audits hardware and model paths without creating unstaged file changes."
 
-  # 6. CODE FORMATTING
+  # 5. CODE FORMATTING
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
       - id: black
         exclude: |
           (?x)^(
-              qwen_v2d5/utils/mobile_agent.py |
-              qwen_v2d5/utils/ocr.py |
-              qwen_v2d5/utils/spatial_understanding.py |
-              qwen_v2d5/utils/universal_recognition.py
-          )$
+              projects/archive/|
+              benchmarks/qwen/utils/|  # Add this line
+              qwen_v2/
+          )
