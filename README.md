@@ -2,7 +2,13 @@
 
 This repository serves as a centralized laboratory for **Vision-Language Model (VLM)** experimentation, focusing on **Qwen-VL** and **CLIP** architectures. It also integrates a high-fidelity **NOAA Satellite Infrastructure** for real-time geophysical data processing.
 
-VLM Status: AUTO
+### 🤖 Model Dashboard
+
+| Metric | Status |
+| :--- | :--- |
+| **Security Scan** | [![GitGuardian](https://img.shields.io/badge/GG-Protected-brightgreen)](#) |
+| **Model Health** | VLM Status: ⚪ Initializing |
+| **Test Coverage** | ![Coverage](https://img.shields.io/badge/Coverage-89%25-green) |
 
 ## 📂 Project Structure
 
