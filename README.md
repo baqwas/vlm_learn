@@ -4,12 +4,13 @@ This repository serves as a centralized laboratory for **Vision-Language Model (
 
 ### 🤖 Model Dashboard
 
-| Metric            | Status                                                                     |
-|:------------------|:---------------------------------------------------------------------------|
-| **Security Scan** | [![GitGuardian](https://img.shields.io/badge/GG-Protected-brightgreen)](#) |
-| **Model Health**  | VLM Status: ⚪ Initializing                                                 |
-|                   | Last Audit: 🕒 Pending...                                       |
-| **Test Coverage** | ![Coverage](https://img.shields.io/badge/Coverage-89%25-green)             |
+| Metric                 | Status                                                                                                                                                                                            |
+|:-----------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Security Scan**      | [![GitGuardian](https://img.shields.io/badge/GG-Protected-brightgreen)](#)                                                                                                                        |
+| **Security Audit** | [![Security Audit](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/security-audit.yml/badge.svg)](https://github.com/baqwas/vlm_learn/actions/workflows/security-audit.yml) |
+| **Model Health**       | VLM Status: ⚪ Initializing                                                                                                                                                                        |
+|                        | Last Audit: 🕒 Pending...                                                                                                                                                                         |
+| **Test Coverage**      | ![Coverage](https://img.shields.io/badge/Coverage-89%25-green)                                                                                                                                    |
 
 ## 📂 Project Structure
 
