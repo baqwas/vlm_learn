@@ -17,3 +17,8 @@ huggingface_hub # For downloading models via CLI or scripts
 # --- Testing & CI ---
 pytest         # Fixes your 'command not found' error
 pytest-cov     # Optional: For test coverage reports
+
+qwen-vl-utils
+
+# for Qwen3-VL Thinking models
+llama-cpp-python @ git+https://github.com/JamePeng/llama-cpp-python.git

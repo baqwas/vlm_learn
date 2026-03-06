@@ -1,7 +1,7 @@
 name: VLM Integrity & Security Master
 
 permissions:
-  contents: read
+  contents: write  # Changed to write for README updates
 
 on:
   push:
@@ -20,9 +20,6 @@ jobs:
       - name: GitGuardian scan
         uses: GitGuardian/ggshield-action@main
         env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_DEFAULT_BRANCH: master
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
@@ -35,27 +32,35 @@ jobs:
       status: ${{ steps.check.outputs.status }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - name: Install Dependencies
-        run: pip install torch
+          python-version: '3.13'  # Matches your local Python 3.13.7 environment
+
+      - name: Install Project Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Explicitly install CPU-only torch to save time and space on the runner
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          # Install everything else from your requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Ensure transformers and utils are present if not in requirements.txt
+          pip install transformers qwen-vl-utils
+
       - name: Run Audit
         id: check
         run: |
-          # Create dummy weights for the runner check
-          mkdir -p models && touch models/checkpoint.safetensors
-          OUTPUT=$(python utilities/check_vlm_health.py)
-          VRAM=$(echo "$OUTPUT" | grep "VRAM_GB:" | cut -d':' -f2 | xargs)
-          STATUS=$(echo "$OUTPUT" | grep "VLM_STATUS:" | cut -d':' -f2 | xargs)
-          echo "vram=$VRAM" >> $GITHUB_OUTPUT
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          # Professional audit call
+          OUTPUT=$(python3 utilities/check_vlm_health.py)
+          echo "vram=$(echo "$OUTPUT" | grep 'VRAM_GB:' | cut -d':' -f2 | xargs)" >> $GITHUB_OUTPUT
+          echo "status=$(echo "$OUTPUT" | grep 'VLM_STATUS:' | cut -d':' -f2 | xargs)" >> $GITHUB_OUTPUT
 
   update_readme:
     name: Update Model Dashboard
     needs: vlm_audit
     runs-on: ubuntu-latest
+    if: success()
     steps:
       - uses: actions/checkout@v4
       - name: Inject VLM Stats
