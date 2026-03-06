@@ -4,11 +4,12 @@ This repository serves as a centralized laboratory for **Vision-Language Model (
 
 ### 🤖 Model Dashboard
 
-| Metric | Status |
-| :--- | :--- |
+| Metric            | Status                                                                     |
+|:------------------|:---------------------------------------------------------------------------|
 | **Security Scan** | [![GitGuardian](https://img.shields.io/badge/GG-Protected-brightgreen)](#) |
-| **Model Health** | VLM Status: ⚪ Initializing |
-| **Test Coverage** | ![Coverage](https://img.shields.io/badge/Coverage-89%25-green) |
+| **Model Health**  | VLM Status: ⚪ Initializing                                                 |
+|                   | Last Audit: 🕒 Pending...                                       |
+| **Test Coverage** | ![Coverage](https://img.shields.io/badge/Coverage-89%25-green)             |
 
 ## 📂 Project Structure
 
