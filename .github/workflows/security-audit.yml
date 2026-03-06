@@ -1,0 +1,45 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # We install 'markdown' to manually create the HTML report
+          pip install pip-audit markdown
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run pip-audit and Generate HTML
+        run: |
+          # 1. Run the audit in Markdown format (always supported)
+          # 2. Use '|| true' so the workflow doesn't crash if vulnerabilities are found
+          # 3. Convert that Markdown to HTML manually
+          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2025-67221 > audit_report.md || true
+          python3 -m markdown audit_report.md > security-report.html
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-report
+          path: security-report.html
+
+      - name: Final Security Gate
+        run: |
+          # This step actually "fails" the build if vulnerabilities exist,
+          # but only AFTER the report has been saved above.
+          pip-audit --local --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2025-67221
