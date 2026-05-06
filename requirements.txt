@@ -24,3 +24,7 @@ qwen-vl-utils
 # llama-cpp-python @ git+https://github.com/JamePeng/llama-cpp-python.git
 
 diskcache>=5.6.3
+
+# --- Security Overrides ---
+# Manually upgrading setuptools to clear PYSEC-2022-43012, PYSEC-2025-49, and CVE-2024-6345
+setuptools>=75.1.1
