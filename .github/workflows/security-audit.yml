@@ -1,4 +1,4 @@
-# GitHub Actions Workflow for VLM Project Security Auditing
+# GitHub Actions Workflow for vlm_learn Project Security Auditing
 # This workflow runs a security audit on Python dependencies using pip-audit.
 # It is configured to ignore specific unpatched vulnerabilities and allow
 # for missing packages to ensure the CI/CD pipeline remains functional.
