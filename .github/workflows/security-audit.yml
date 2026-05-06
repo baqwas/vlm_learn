@@ -26,24 +26,28 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
+          # v3 key forces a fresh cache to ensure setuptools upgrade is applied
+          key: ${{ runner.os }}-pip-v3-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Attempting installation but allowing failure for complex wheels
+          # We attempt to install requirements but use '|| true' to prevent 
+          # build failures from complex wheels like llama-cpp-python.
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
         run: |
-          pip install pip-audit markdown
-          # 1. We remove --allow-not-found as it is not a valid pip-audit flag.
-          # 2. We use --ignore-vuln CVE-2025-69872 for the diskcache issue.
-          # 3. We use --local to scan the environment.
-          # 4. '|| echo "Audit found issues"' ensures the report is generated even if bugs exist.
+          # Install reporting tools
+          python -m pip install pip-audit markdown --disable-pip-version-check
+          
+          # 1. We ignore CVE-2025-69872 (diskcache) as no patch exists yet.
+          # 2. We use || echo to ensure we proceed to report generation.
           pip-audit --local -f markdown `
             --ignore-vuln CVE-2025-69872 `
-            -o audit_report.md || echo "Audit completed with findings"
+            -o audit_report.md || echo "Audit findings identified"
           
           # Ensure the file exists before running markdown to avoid FileNotFoundError
           if (Test-Path audit_report.md) {
@@ -61,4 +65,5 @@ jobs:
       - name: Final Security Gate
         run: |
           # This step fails the build ONLY if NEW, un-ignored vulnerabilities are found.
+          # The diskcache CVE is ignored to allow the workflow to pass.
           pip-audit --local --ignore-vuln CVE-2025-69872
