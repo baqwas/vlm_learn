@@ -1,7 +1,5 @@
 # GitHub Actions Workflow for VLM Project Security Auditing
 # This workflow runs a security audit on Python dependencies using pip-audit.
-# It is configured to ignore specific unpatched vulnerabilities and handle
-# missing dependencies to ensure the CI/CD pipeline remains functional.
 
 name: Security Audit
 
@@ -11,12 +9,10 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    # Run weekly to catch new CVEs in existing dependencies
     - cron: '0 0 * * 0'
 
 jobs:
   audit:
-    # Using windows-latest to mirror the local development environment
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -26,7 +22,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          # v3 key forces a fresh cache to ensure requirements.txt changes are applied
           key: ${{ runner.os }}-pip-v3-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
