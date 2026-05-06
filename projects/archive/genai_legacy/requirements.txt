@@ -260,7 +260,7 @@ python-dateutil==2.9.0.post0
 python-debian==1.1.0
 python-discovery==1.1.0
 python-dotenv==1.2.2
-python-multipart==0.0.26
+python-multipart==0.0.27
 pytz==2026.1.post1
 pyxdg==0.28
 PyYAML==6.0.3
