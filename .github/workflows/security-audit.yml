@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          # v3 key forces a fresh cache to ensure setuptools upgrade is applied
+          # v3 key forces a fresh cache to ensure requirements.txt changes are applied
           key: ${{ runner.os }}-pip-v3-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -34,22 +34,21 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # We attempt to install requirements but use '|| true' to prevent 
-          # build failures from complex wheels like llama-cpp-python.
+          # Attempt to install requirements; allow failure for complex wheels (llama-cpp-python)
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
         run: |
-          # Install reporting tools
+          # Install audit and reporting tools
           python -m pip install pip-audit markdown --disable-pip-version-check
           
-          # 1. We ignore CVE-2025-69872 (diskcache) as no patch exists yet.
-          # 2. We use || echo to ensure we proceed to report generation.
+          # 1. Ignore CVE-2025-69872 (diskcache) as no patch exists yet.
+          # 2. Use '|| echo' to ensure the workflow proceeds to report generation even if bugs are found.
           pip-audit --local -f markdown `
             --ignore-vuln CVE-2025-69872 `
-            -o audit_report.md || echo "Audit findings identified"
+            -o audit_report.md || echo "Vulnerabilities found but ignored for reporting"
           
-          # Ensure the file exists before running markdown to avoid FileNotFoundError
+          # Convert the markdown audit to a readable HTML report
           if (Test-Path audit_report.md) {
             python -m markdown audit_report.md > security-report.html
           } else {
@@ -64,6 +63,7 @@ jobs:
 
       - name: Final Security Gate
         run: |
-          # This step fails the build ONLY if NEW, un-ignored vulnerabilities are found.
-          # The diskcache CVE is ignored to allow the workflow to pass.
+          # This step is the "Enforcer". 
+          # It returns Exit Code 0 (Success) because the known diskcache issue is ignored.
+          # It will only return Exit Code 1 (Failure) if a NEW vulnerability is detected.
           pip-audit --local --ignore-vuln CVE-2025-69872
