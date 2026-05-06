@@ -34,23 +34,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Attempt to install requirements; allow failure for complex wheels
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
         run: |
-          # Install audit and reporting tools
           python -m pip install pip-audit markdown --disable-pip-version-check
-          
-          # We remove the backtick line breaks to eliminate whitespace errors
-          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Audit findings identified"
-          
-          # Convert the markdown audit to a readable HTML report
-          if (Test-Path audit_report.md) {
-            python -m markdown audit_report.md > security-report.html
-          } else {
-            echo "No audit report generated" > security-report.html
-          }
+          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Findings handled"
+          if (Test-Path audit_report.md) { python -m markdown audit_report.md > security-report.html }
 
       - name: Upload Audit Report
         uses: actions/upload-artifact@v4
@@ -60,6 +50,4 @@ jobs:
 
       - name: Final Security Gate
         run: |
-          # This step is the "Enforcer".
-          # We use a single line to ensure no hidden characters break the flags.
           pip-audit --local --ignore-vuln CVE-2025-69872
