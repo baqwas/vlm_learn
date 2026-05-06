@@ -1,7 +1,7 @@
 # GitHub Actions Workflow for VLM Project Security Auditing
 # This workflow runs a security audit on Python dependencies using pip-audit.
-# It is configured to ignore specific unpatched vulnerabilities and allow
-# for missing packages to ensure the CI/CD pipeline remains functional.
+# It is configured to ignore specific unpatched vulnerabilities and handle
+# missing dependencies to ensure the CI/CD pipeline remains functional.
 
 name: Security Audit
 
@@ -31,22 +31,26 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # We attempt to install requirements but use '|| true' to prevent 
-          # build failures from complex wheels like llama-cpp-python.
+          # Attempting installation but allowing failure for complex wheels
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
         run: |
           pip install pip-audit markdown
-          # 1. --ignore-vuln CVE-2025-69872: Bypasses the unpatched diskcache issue.
-          # 2. --allow-not-found: Prevents Exit Code 1 if llama-cpp-python is skipped.
-          # 3. || true: Ensures the markdown conversion runs even if the audit finds issues.
+          # 1. We remove --allow-not-found as it is not a valid pip-audit flag.
+          # 2. We use --ignore-vuln CVE-2025-69872 for the diskcache issue.
+          # 3. We use --local to scan the environment.
+          # 4. '|| echo "Audit found issues"' ensures the report is generated even if bugs exist.
           pip-audit --local -f markdown `
             --ignore-vuln CVE-2025-69872 `
-            --allow-not-found `
-            -o audit_report.md || true
+            -o audit_report.md || echo "Audit completed with findings"
           
-          python -m markdown audit_report.md > security-report.html
+          # Ensure the file exists before running markdown to avoid FileNotFoundError
+          if (Test-Path audit_report.md) {
+            python -m markdown audit_report.md > security-report.html
+          } else {
+            echo "No audit report generated" > security-report.html
+          }
 
       - name: Upload Audit Report
         uses: actions/upload-artifact@v4
@@ -56,8 +60,5 @@ jobs:
 
       - name: Final Security Gate
         run: |
-          # This step serves as the definitive success/failure check.
-          # It fails the build ONLY if NEW, un-ignored vulnerabilities are detected.
-          pip-audit --local `
-            --ignore-vuln CVE-2025-69872 `
-            --allow-not-found
+          # This step fails the build ONLY if NEW, un-ignored vulnerabilities are found.
+          pip-audit --local --ignore-vuln CVE-2025-69872
