@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Attempt to install requirements; allow failure for complex wheels (llama-cpp-python)
+          # Attempt to install requirements; allow failure for complex wheels
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
@@ -42,11 +42,8 @@ jobs:
           # Install audit and reporting tools
           python -m pip install pip-audit markdown --disable-pip-version-check
           
-          # 1. Ignore CVE-2025-69872 (diskcache) as no patch exists yet.
-          # 2. Use '|| echo' to ensure the workflow proceeds to report generation even if bugs are found.
-          pip-audit --local -f markdown `
-            --ignore-vuln CVE-2025-69872 `
-            -o audit_report.md || echo "Vulnerabilities found but ignored for reporting"
+          # We remove the backtick line breaks to eliminate whitespace errors
+          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Audit findings identified"
           
           # Convert the markdown audit to a readable HTML report
           if (Test-Path audit_report.md) {
@@ -63,7 +60,6 @@ jobs:
 
       - name: Final Security Gate
         run: |
-          # This step is the "Enforcer". 
-          # It returns Exit Code 0 (Success) because the known diskcache issue is ignored.
-          # It will only return Exit Code 1 (Failure) if a NEW vulnerability is detected.
+          # This step is the "Enforcer".
+          # We use a single line to ensure no hidden characters break the flags.
           pip-audit --local --ignore-vuln CVE-2025-69872
