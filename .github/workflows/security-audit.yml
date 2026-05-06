@@ -31,12 +31,10 @@ jobs:
           # 1. Run the audit in Markdown format (always supported)
           # 2. Use '|| true' so the workflow doesn't crash if vulnerabilities are found
           # 3. Added --ignore-vuln for known diskcache and local vulnerabilities
-          # 4. Added --skip-internal to prevent failure on non-PyPI packages like llama-cpp-python
-          # 5. Convert that Markdown to HTML manually
+          # 4. Convert that Markdown to HTML manually
           pip-audit --local -f markdown \
             --ignore-vuln CVE-2025-69872 \
             --ignore-vuln CVE-2025-67221 \
-            --skip-internal \
             > audit_report.md || true
           python3 -m markdown audit_report.md > security-report.html
 
@@ -50,8 +48,7 @@ jobs:
         run: |
           # This step actually "fails" the build if NEW vulnerabilities exist,
           # but only AFTER the report has been saved above.
-          # Flags are synced here to allow the build to pass despite known/internal issues.
+          # Flags are synced here to allow the build to pass despite known issues.
           pip-audit --local \
             --ignore-vuln CVE-2025-69872 \
-            --ignore-vuln CVE-2025-67221 \
-            --skip-internal
+            --ignore-vuln CVE-2025-67221
