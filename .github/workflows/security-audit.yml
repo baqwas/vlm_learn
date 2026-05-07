@@ -11,9 +11,6 @@ on:
 jobs:
   audit:
     runs-on: windows-latest
-    env:
-      # We define the CVE here to ensure it is passed as a clean string
-      VULN_TO_IGNORE: "CVE-2025-69872"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,19 +19,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          key: ${{ runner.os }}-pip-v3-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip pip-audit markdown
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
-      - name: Run pip-audit and Generate HTML
+      - name: Run Audit with Local Ignore Config
+        shell: pwsh
         run: |
-          python -m pip install pip-audit markdown --disable-pip-version-check
-          pip-audit --local -f markdown --ignore-vuln ${{ env.VULN_TO_IGNORE }} -o audit_report.md || echo "Findings handled"
+          # Create a local ignore file to ensure the tool reads the CVE ID correctly
+          "CVE-2025-69872" | Out-File -FilePath ignore.txt -Encoding ascii
+          
+          # Run the audit using the ignore file
+          pip-audit --local -f markdown --ignore-vuln (Get-Content ignore.txt) -o audit_report.md || echo "Vulnerabilities handled"
+          
+          # Generate the HTML report
           if (Test-Path audit_report.md) { python -m markdown audit_report.md > security-report.html }
 
       - name: Upload Audit Report
@@ -44,5 +44,7 @@ jobs:
           path: security-report.html
 
       - name: Final Security Gate
-        # This is the line that was failing. We use the GitHub Context syntax here.
-        run: pip-audit --local --ignore-vuln ${{ env.VULN_TO_IGNORE }}
+        shell: pwsh
+        run: |
+          $ignore = Get-Content ignore.txt
+          pip-audit --local --ignore-vuln $ignore
