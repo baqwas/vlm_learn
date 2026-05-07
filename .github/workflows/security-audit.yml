@@ -1,5 +1,5 @@
 # GitHub Actions Workflow for VLM Project Security Auditing
-# This version uses single-line commands to prevent hidden character errors.
+# Sanitized version to remove hidden Unicode characters
 
 name: Security Audit
 
