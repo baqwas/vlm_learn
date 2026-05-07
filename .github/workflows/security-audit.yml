@@ -47,4 +47,4 @@ jobs:
         shell: pwsh
         run: |
           $ignore = Get-Content ignore.txt
-          pip-audit --local --ignore-vuln $ignore
+          pip-audit --local --ignore-vuln CVE-2025-69872
