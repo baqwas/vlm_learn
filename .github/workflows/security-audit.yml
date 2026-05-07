@@ -46,5 +46,8 @@ jobs:
       - name: Final Security Gate
         shell: pwsh
         run: |
-          $ignore = Get-Content ignore.txt
-          pip-audit --local --ignore-vuln CVE-2025-69872
+          # Create a clean, zero-hidden-character ignore file
+          Set-Content -Path ignore_list.txt -Value "CVE-2025-69872"
+          
+          # Run the audit using the -i (ignore) flag pointing to that file
+          pip-audit --local --ignore-vuln (Get-Content ignore_list.txt)
