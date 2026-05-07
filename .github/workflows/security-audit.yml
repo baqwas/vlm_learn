@@ -1,6 +1,3 @@
-# GitHub Actions Workflow for VLM Project Security Auditing
-# Sanitized version to remove hidden Unicode characters
-
 name: Security Audit
 
 on:
@@ -14,6 +11,8 @@ on:
 jobs:
   audit:
     runs-on: windows-latest
+    env:
+      IGNORE_ID: "CVE-2025-69872"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,9 +31,9 @@ jobs:
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
       - name: Run pip-audit and Generate HTML
-        run: |
-          python -m pip install pip-audit markdown --disable-pip-version-check
-          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Findings handled"
+        run: >
+          python -m pip install pip-audit markdown --disable-pip-version-check;
+          pip-audit --local -f markdown --ignore-vuln $env:IGNORE_ID -o audit_report.md || echo "Findings handled";
           if (Test-Path audit_report.md) { python -m markdown audit_report.md > security-report.html }
 
       - name: Upload Audit Report
@@ -44,5 +43,4 @@ jobs:
           path: security-report.html
 
       - name: Final Security Gate
-        run: |
-          pip-audit --local --ignore-vuln CVE-2025-69872
+        run: pip-audit --local --ignore-vuln $env:IGNORE_ID
