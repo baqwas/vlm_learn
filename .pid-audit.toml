@@ -1,0 +1,6 @@
+# .pip-audit.toml
+# This file suppresses known vulnerabilities that are unpatched or low-risk.
+
+ignore-vuln = [
+  "CVE-2025-69872", # diskcache: Unpatched as of May 2026; risk is local/negligible.
+]

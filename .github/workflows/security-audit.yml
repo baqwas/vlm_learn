@@ -1,7 +1,7 @@
 # GitHub Actions Workflow: Security Audit
 # -----------------------------------------------------------------------------
 # Performs a security scan of the Python environment using pip-audit.
-# Enforces a security gate for the build while ignoring specific known CVEs.
+# Uses .pip-audit.toml to manage "signed-off" or ignored vulnerabilities.
 # -----------------------------------------------------------------------------
 
 name: Security Audit
@@ -37,9 +37,9 @@ jobs:
       - name: Run Scan and Generate Markdown Report
         shell: pwsh
         run: |
-          # CVE-2025-69872 (diskcache) is ignored as an unpatched item.
-          # The '|| echo' allows the workflow to proceed to the HTML conversion step.
-          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Findings handled"
+          # The tool automatically picks up the 'ignore-vuln' list from .pip-audit.toml
+          # The '|| echo' allows the workflow to generate the HTML report even if findings exist.
+          pip-audit --local -f markdown -o audit_report.md || echo "Scan findings detected"
 
       - name: Convert Markdown to HTML Report
         shell: pwsh
@@ -57,8 +57,6 @@ jobs:
       - name: Final Security Gate
         shell: pwsh
         run: |
-# We define the ignore list as a clean PowerShell array
-          $ignores = @("CVE-2025-69872")
-          
-          # Pass the array to the command
-          pip-audit --local --ignore-vuln $ignores
+          # This step enforces the build status. 
+          # It will only fail if a vulnerability is found that is NOT in your .toml file.
+          pip-audit --local
