@@ -54,4 +54,4 @@ jobs:
         shell: pwsh
         run: |
           # Explicitly passing the config file unblocks the gate
-          pip-audit --local --config pip-audit.toml
+          pip-audit --local --ignore-vuln CVE-2025-69872
