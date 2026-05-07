@@ -1,5 +1,5 @@
 # GitHub Actions Workflow for VLM Project Security Auditing
-# This workflow runs a security audit on Python dependencies using pip-audit.
+# This version uses single-line commands to prevent hidden character errors.
 
 name: Security Audit
 
