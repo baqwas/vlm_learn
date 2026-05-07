@@ -1,12 +1,8 @@
-# GitHub Actions Workflow for VLM Project Security Auditing
-# This workflow runs a security audit on Python dependencies using pip-audit.
 # GitHub Actions Workflow: Security Audit
-# Description: This workflow performs an automated security scan of the Python environment
-# using pip-audit. It checks for known vulnerabilities (CVEs) in installed dependencies,
-# generates a human-readable HTML report, and enforces a security gate for the build.
-#
-# Environment: Windows-latest
-# Frequency: On Push to main/develop, Pull Requests, and Weekly Schedule.
+# -----------------------------------------------------------------------------
+# Performs a security scan of the Python environment using pip-audit.
+# Enforces a security gate for the build while ignoring specific known CVEs.
+# -----------------------------------------------------------------------------
 
 name: Security Audit
 
@@ -16,7 +12,6 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    # Run every Sunday at midnight to catch newly disclosed vulnerabilities
     - cron: '0 0 * * 0'
 
 jobs:
@@ -26,49 +21,41 @@ jobs:
 
     steps:
       - name: Checkout Code
-        description: Pulls the repository source code into the runner environment.
         uses: actions/checkout@v4
 
       - name: Set up Python
-        description: Initializes Python 3.11 environment for the audit tools.
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install Audit Tools and Dependencies
-        description: Installs pip-audit for scanning and markdown for report conversion.
         run: |
           python -m pip install --upgrade pip
           python -m pip install pip-audit markdown --disable-pip-version-check
           if (Test-Path requirements.txt) { pip install -r requirements.txt || true }
 
-      - name: Generate Security Report
-        description: |
-          Runs the primary scan. The '|| echo' ensures that even if vulnerabilities 
-          are found, the workflow continues so the HTML report can be uploaded.
+      - name: Run Scan and Generate Markdown Report
         shell: pwsh
         run: |
-          # Perform scan and output to Markdown
-          # CVE-2025-69872 (diskcache) is ignored as it is a known false positive/unpatched item.
-          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Scan findings detected"
-          
-          # Convert Markdown report to HTML for better readability
+          # CVE-2025-69872 (diskcache) is ignored as an unpatched item.
+          # The '|| echo' allows the workflow to proceed to the HTML conversion step.
+          pip-audit --local -f markdown --ignore-vuln CVE-2025-69872 -o audit_report.md || echo "Findings handled"
+
+      - name: Convert Markdown to HTML Report
+        shell: pwsh
+        run: |
           if (Test-Path audit_report.md) {
             python -m markdown audit_report.md > security-report.html
           }
 
-      - name: Upload Audit Artifact
-        description: Attaches the HTML security report to the GitHub Action run.
+      - name: Upload HTML Security Report
         uses: actions/upload-artifact@v4
         with:
           name: security-report
           path: security-report.html
 
       - name: Final Security Gate
-        description: |
-          Enforces the build status. This step will fail the build if any 
-          vulnerabilities are found that are NOT explicitly ignored.
         shell: pwsh
         run: |
-          # By passing the ID directly as a string, we avoid PowerShell encoding issues.
+          # This step will fail the build if any UNKNOWN vulnerabilities are found.
           pip-audit --local --ignore-vuln CVE-2025-69872
