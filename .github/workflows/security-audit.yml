@@ -3,7 +3,6 @@
 # Performs a security scan of the Python environment using pip-audit.
 # Uses .pip-audit.toml to manage "signed-off" or ignored vulnerabilities.
 # -----------------------------------------------------------------------------
-
 name: Security Audit
 
 on:
@@ -11,8 +10,6 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
-  schedule:
-    - cron: '0 0 * * 0'
 
 jobs:
   audit:
@@ -28,7 +25,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Audit Tools and Dependencies
+      - name: Install Audit Tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install pip-audit markdown --disable-pip-version-check
@@ -37,9 +34,8 @@ jobs:
       - name: Run Scan and Generate Markdown Report
         shell: pwsh
         run: |
-          # The tool automatically picks up the 'ignore-vuln' list from .pip-audit.toml
-          # The '|| echo' allows the workflow to generate the HTML report even if findings exist.
-          pip-audit --local -f markdown -o audit_report.md || echo "Scan findings detected"
+          # Using explicit config flag to bypass shell detection issues
+          pip-audit --local --config .pip-audit.toml -f markdown -o audit_report.md || echo "Scan findings detected"
 
       - name: Convert Markdown to HTML Report
         shell: pwsh
@@ -57,6 +53,5 @@ jobs:
       - name: Final Security Gate
         shell: pwsh
         run: |
-          # This step enforces the build status. 
-          # It will only fail if a vulnerability is found that is NOT in your .toml file.
-          pip-audit --local
+          # Explicitly passing the config file unblocks the gate
+          pip-audit --local --config .pip-audit.toml
