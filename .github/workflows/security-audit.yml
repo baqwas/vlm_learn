@@ -57,5 +57,8 @@ jobs:
       - name: Final Security Gate
         shell: pwsh
         run: |
-          # This step will fail the build if any UNKNOWN vulnerabilities are found.
-          pip-audit --local --ignore-vuln CVE-2025-69872
+# We define the ignore list as a clean PowerShell array
+          $ignores = @("CVE-2025-69872")
+          
+          # Pass the array to the command
+          pip-audit --local --ignore-vuln $ignores
