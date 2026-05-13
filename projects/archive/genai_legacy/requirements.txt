@@ -210,7 +210,7 @@ opentelemetry-semantic-conventions==0.58b0
 orjson==3.11.7
 packaging==26.0
 pandas==3.0.1
-paramiko==4.0.0
+paramiko==5.0.0
 parso==0.8.6
 partd==1.4.2
 passlib==1.7.4
@@ -498,7 +498,7 @@ ufw==0.36.2
 unattended-upgrades==0.1
 unicodedata2==17.0.1
 uritemplate==4.2.0
-urllib3==2.6.3
+urllib3==2.7.0
 usb-creator==0.3.16
 userpath==1.9.2
 uvicorn==0.41.0
